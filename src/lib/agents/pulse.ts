@@ -3,18 +3,25 @@
 // pre-trip financial briefing. This is deliberately simple, rule-based
 // logic for the MVP; swap the inference step for a real model later.
 
-import type { AgentAction, CustomerLifeGraph } from "../types";
+import type { AgentAction, CustomerLifeGraph, LifeGraphCalendarEvent } from "../types";
 
 const TRIP_KEYWORDS = ["flight", "trip", "hotel", "vacation"];
+
+function looksLikeTrip(event: LifeGraphCalendarEvent): boolean {
+  return TRIP_KEYWORDS.some((kw) => event.title.toLowerCase().includes(kw));
+}
+
+// Shared by the Shield agent (Trip Mode) and the Pulse/Shield pages, so
+// there's one place that decides which calendar event counts as "the trip".
+export function findTripEvent(graph: CustomerLifeGraph): LifeGraphCalendarEvent | undefined {
+  return graph.calendarEvents.find(looksLikeTrip);
+}
 
 export function detectLifeEvents(graph: CustomerLifeGraph): AgentAction[] {
   const actions: AgentAction[] = [];
 
   for (const event of graph.calendarEvents) {
-    const looksLikeTrip = TRIP_KEYWORDS.some((kw) =>
-      event.title.toLowerCase().includes(kw)
-    );
-    if (!looksLikeTrip) continue;
+    if (!looksLikeTrip(event)) continue;
 
     const daysUntil = Math.ceil(
       (new Date(event.startsAt).getTime() - Date.now()) / 86_400_000
@@ -37,9 +44,7 @@ export function buildPreTripBriefing(
   graph: CustomerLifeGraph,
   suggestedSetAside = 250
 ): AgentAction | null {
-  const trip = graph.calendarEvents.find((e) =>
-    TRIP_KEYWORDS.some((kw) => e.title.toLowerCase().includes(kw))
-  );
+  const trip = findTripEvent(graph);
   if (!trip) return null;
 
   return {

@@ -71,14 +71,19 @@ model Subscription {
 
 // Every autonomous suggestion or action any agent takes, for the
 // MAS-compliant audit trail. Nothing executes without a matching row here.
+//
+// id is a deterministic string minted by the agent rule functions (e.g.
+// "pulse_evt_korea"), not an auto-generated cuid — this lets syncAgentActions
+// upsert on every request instead of creating duplicate rows.
 model AgentAction {
-  id          String   @id @default(cuid())
+  id          String   @id
   user        User     @relation(fields: [userId], references: [id])
   userId      String
   agent       String // "pulse" | "yield" | "shield"
   actionType  String // "recommendation" | "autonomous_action"
   description String
   requiresApproval Boolean @default(true)
+  status      String   @default("pending") // "pending" | "approved" | "dismissed"
   approvedAt  DateTime?
   createdAt   DateTime @default(now())
 }

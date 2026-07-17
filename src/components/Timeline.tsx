@@ -1,19 +1,31 @@
-import type { AgentAction } from "@/lib/types";
+import type { PersistedAgentAction } from "@/lib/types";
+import { formatRelativeTime } from "@/lib/format";
 
-export function Timeline({ actions }: { actions: AgentAction[] }) {
-  const sorted = [...actions].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
+const DOT_COLOR: Record<PersistedAgentAction["agent"], string> = {
+  pulse: "bg-orbit-pulse",
+  yield: "bg-orbit-yield",
+  shield: "bg-orbit-shield",
+};
+
+export function Timeline({ actions }: { actions: PersistedAgentAction[] }) {
+  if (actions.length === 0) {
+    return <p className="text-sm text-orbit-muted">No activity yet.</p>;
+  }
 
   return (
-    <ol className="space-y-4 border-l border-slate-700 pl-6">
-      {sorted.map((action) => (
-        <li key={action.id} className="relative">
-          <span className="absolute -left-[29px] top-1 h-3 w-3 rounded-full bg-cyan-400" />
-          <p className="text-xs uppercase tracking-wide text-slate-500">{action.agent}</p>
-          <p className="text-sm text-slate-200">{action.description}</p>
+    <ul className="flex flex-col">
+      {actions.map((action) => (
+        <li
+          key={action.id}
+          className="flex items-center gap-2.5 border-b border-orbit-border py-3 last:border-none"
+        >
+          <span className={`h-2 w-2 shrink-0 rounded-full ${DOT_COLOR[action.agent]}`} />
+          <span className="flex-1 truncate text-[13px] text-white">{action.description}</span>
+          <span className="shrink-0 text-[11px] text-orbit-muted">
+            {formatRelativeTime(action.timestamp)}
+          </span>
         </li>
       ))}
-    </ol>
+    </ul>
   );
 }

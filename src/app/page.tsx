@@ -1,51 +1,57 @@
-import { sarahLifeGraph } from "@/lib/mockData";
-import { detectLifeEvents, buildPreTripBriefing } from "@/lib/agents/pulse";
-import { findIdleMoney } from "@/lib/agents/yieldAgent";
-import { flagUnusedSubscriptions, activateTripMode } from "@/lib/agents/shield";
-import { AgentCard } from "@/components/AgentCard";
-import { Timeline } from "@/components/Timeline";
+"use client";
 
-export default function DashboardPage() {
-  // For the MVP this runs the agent logic directly at render time against
-  // mock data. Once the backend track wires up src/lib/db.ts, swap these
-  // calls for fetches to /api/agents/* (already stubbed) or server actions.
-  const pulseActions = detectLifeEvents(sarahLifeGraph);
-  const briefing = buildPreTripBriefing(sarahLifeGraph);
-  const yieldActions = findIdleMoney(sarahLifeGraph);
-  const shieldActions = [
-    ...flagUnusedSubscriptions(sarahLifeGraph),
-    activateTripMode(sarahLifeGraph, "Flight to Seoul"),
-  ];
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AppShell } from "@/components/AppShell";
+import { GlobeAnimation } from "@/components/GlobeAnimation";
 
-  const allActions = [
-    ...pulseActions,
-    ...(briefing ? [briefing] : []),
-    ...yieldActions,
-    ...shieldActions,
-  ];
+export default function SplashPage() {
+  const router = useRouter();
+  const [entering, setEntering] = useState(false);
+
+  function enterOrbit() {
+    setEntering(true);
+    setTimeout(() => router.push("/dashboard"), 900);
+  }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <header className="mb-10">
-        <h1 className="text-4xl font-bold text-white">ORBIT</h1>
-        <p className="mt-1 text-slate-400 italic">Your money. Always working.</p>
-      </header>
+    <AppShell withBottomNav={false}>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(0,194,199,0.12) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
 
-      <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          Sarah&apos;s Korea Trip — live demo
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <AgentCard agent="pulse" actions={[...pulseActions, ...(briefing ? [briefing] : [])]} />
-          <AgentCard agent="yield" actions={yieldActions} />
-          <AgentCard agent="shield" actions={shieldActions} />
-        </div>
-      </section>
+      <GlobeAnimation />
 
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-white">Timeline</h2>
-        <Timeline actions={allActions} />
-      </section>
-    </main>
+      <div className="relative px-8 text-center">
+        <p className="text-[36px] font-bold leading-none text-white">Orbit</p>
+        <p className="mt-1.5 text-xs tracking-wide text-orbit-muted">Your money, always working</p>
+      </div>
+
+      <div className="relative flex flex-col items-center gap-3.5 px-8 pb-14 pt-10">
+        {entering ? (
+          <div className="flex h-[54px] items-center gap-3 text-sm text-orbit-muted">
+            <span className="h-6 w-6 animate-spin rounded-full border-[3px] border-orbit-pulse/20 border-t-orbit-pulse" />
+            Loading your Orbit...
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={enterOrbit}
+              className="h-[54px] w-full rounded-full bg-gradient-to-br from-orbit-pulse to-[#00a8ad] text-base font-semibold text-[#050a14] shadow-lg shadow-orbit-pulse/20 transition hover:shadow-orbit-pulse/40"
+            >
+              Enter Orbit
+            </button>
+            <Link href="/dashboard" className="text-[13px] text-orbit-muted">
+              Already a member? <span className="font-medium text-orbit-pulse">Log in</span>
+            </Link>
+          </>
+        )}
+      </div>
+    </AppShell>
   );
 }

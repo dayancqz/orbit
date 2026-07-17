@@ -27,5 +27,11 @@
     "tailwindcss": "^3.4.4",
     "tsx": "^4.15.0",
     "typescript": "^5.5.0"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.28.1": true,
+    "prisma@5.22.0": true
   }
 }

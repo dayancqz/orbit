@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { sarahLifeGraph } from "@/lib/mockData";
-import { detectLifeEvents, buildPreTripBriefing } from "@/lib/agents/pulse";
+import { getDemoUser, syncAgentActions } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const events = detectLifeEvents(sarahLifeGraph);
-  const briefing = buildPreTripBriefing(sarahLifeGraph);
-  return NextResponse.json({ actions: briefing ? [...events, briefing] : events });
+  const user = await getDemoUser();
+  const actions = await syncAgentActions(user.id);
+  return NextResponse.json({ actions: actions.filter((a) => a.agent === "pulse") });
 }

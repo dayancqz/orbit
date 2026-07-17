@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { sarahLifeGraph } from "@/lib/mockData";
-import { findIdleMoney } from "@/lib/agents/yieldAgent";
+import { getDemoUser, syncAgentActions } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const actions = findIdleMoney(sarahLifeGraph);
-  return NextResponse.json({ actions });
+  const user = await getDemoUser();
+  const actions = await syncAgentActions(user.id);
+  return NextResponse.json({ actions: actions.filter((a) => a.agent === "yield") });
 }

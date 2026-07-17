@@ -4,7 +4,7 @@
 
 import type { AgentAction, CustomerLifeGraph } from "../types";
 
-const LOW_USAGE_THRESHOLD = 0.15;
+export const LOW_USAGE_THRESHOLD = 0.15;
 
 export function flagUnusedSubscriptions(graph: CustomerLifeGraph): AgentAction[] {
   return graph.subscriptions
@@ -21,12 +21,12 @@ export function flagUnusedSubscriptions(graph: CustomerLifeGraph): AgentAction[]
     }));
 }
 
-export function activateTripMode(graph: CustomerLifeGraph, tripTitle: string): AgentAction {
+export function activateTripMode(trip: { id: string; title: string }): AgentAction {
   return {
-    id: `shield_tripmode_${Date.now()}`,
+    id: `shield_tripmode_${trip.id}`,
     agent: "shield",
     actionType: "autonomous_action",
-    description: `Trip Mode activated for "${tripTitle}": tighter transaction watch is on for the duration of the trip.`,
+    description: `Trip Mode activated for "${trip.title}": tighter transaction watch is on for the duration of the trip.`,
     requiresApproval: false, // passive monitoring change, not a money movement
     timestamp: new Date().toISOString(),
   };

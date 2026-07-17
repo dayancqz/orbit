@@ -37,6 +37,8 @@ export interface LifeGraphSubscription {
   status: "active" | "flagged" | "cancelled";
 }
 
+export type ActionStatus = "pending" | "approved" | "dismissed";
+
 export interface AgentAction {
   id: string;
   agent: AgentName;
@@ -44,6 +46,13 @@ export interface AgentAction {
   description: string;
   requiresApproval: boolean;
   timestamp: string;
+}
+
+// The shape returned once an AgentAction has been synced to the database —
+// adds the persisted approval status on top of what the pure rule
+// functions in src/lib/agents/* compute.
+export interface PersistedAgentAction extends AgentAction {
+  status: ActionStatus;
 }
 
 export interface CustomerLifeGraph {

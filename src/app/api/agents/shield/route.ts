@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { sarahLifeGraph } from "@/lib/mockData";
-import { flagUnusedSubscriptions, activateTripMode } from "@/lib/agents/shield";
+import { getDemoUser, syncAgentActions } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const flagged = flagUnusedSubscriptions(sarahLifeGraph);
-  const tripMode = activateTripMode(sarahLifeGraph, "Flight to Seoul");
-  return NextResponse.json({ actions: [...flagged, tripMode] });
+  const user = await getDemoUser();
+  const actions = await syncAgentActions(user.id);
+  return NextResponse.json({ actions: actions.filter((a) => a.agent === "shield") });
 }
