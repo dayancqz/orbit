@@ -1,4 +1,5 @@
-import { getDemoUser, syncAgentActions } from "@/lib/db";
+import { getGuardrails, syncAgentActions } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -17,13 +18,17 @@ function greeting(): string {
   return "Good evening";
 }
 
-function summaryFor(actions: PersistedAgentAction[], agent: AgentName) {
+function summaryFor(actions: PersistedAgentAction[], agent: AgentName, connectCalendar: boolean) {
   const forAgent = actions.filter((a) => a.agent === agent);
   // Prefer something the user still needs to act on over a passive/autonomous
   // update, so the card surfaces what's actually actionable first.
   const needsApproval = forAgent.find((a) => a.status === "pending" && a.requiresApproval);
   const anyPending = forAgent.find((a) => a.status === "pending");
   const top = needsApproval ?? anyPending ?? forAgent[0];
+
+  if (agent === "pulse" && !connectCalendar) {
+    return "Calendar not connected — enable it in Guardrails";
+  }
 
   const FALLBACK: Record<AgentName, string> = {
     pulse: "No upcoming trips detected",
@@ -35,8 +40,8 @@ function summaryFor(actions: PersistedAgentAction[], agent: AgentName) {
 }
 
 export default async function DashboardPage() {
-  const user = await getDemoUser();
-  const actions = await syncAgentActions(user.id);
+  const user = await requireUser();
+  const [actions, settings] = await Promise.all([syncAgentActions(user.id), getGuardrails(user.id)]);
   const pendingAgentCount = new Set(
     actions.filter((a) => a.status === "pending" && a.requiresApproval).map((a) => a.agent)
   ).size;
@@ -56,12 +61,23 @@ export default async function DashboardPage() {
           >
             ⚙
           </Link>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orbit-card2 text-orbit-muted">
+          <Link
+            href="/notifications"
+            className="relative flex h-8 w-8 items-center justify-center rounded-full bg-orbit-card2 text-orbit-muted"
+            aria-label="Notifications"
+          >
             🔔
-          </span>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orbit-card2 text-xs font-medium text-orbit-muted">
+            {pendingAgentCount > 0 && (
+              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-orbit-shield" />
+            )}
+          </Link>
+          <Link
+            href="/profile"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-orbit-card2 text-xs font-medium text-orbit-muted"
+            aria-label="Profile"
+          >
             {user.name.slice(0, 2).toUpperCase()}
-          </span>
+          </Link>
         </div>
       </header>
 
@@ -77,9 +93,24 @@ export default async function DashboardPage() {
       </div>
 
       <div className="flex flex-col gap-3 px-6 pt-4">
-        <AgentCard agent="pulse" title={summaryFor(actions, "pulse")} subtitle="Life Planner" href="/pulse" />
-        <AgentCard agent="yield" title={summaryFor(actions, "yield")} subtitle="Wealth Optimiser" href="/yield" />
-        <AgentCard agent="shield" title={summaryFor(actions, "shield")} subtitle="Spend Guardian" href="/shield" />
+        <AgentCard
+          agent="pulse"
+          title={summaryFor(actions, "pulse", settings.connectCalendar)}
+          subtitle="Life Planner"
+          href="/pulse"
+        />
+        <AgentCard
+          agent="yield"
+          title={summaryFor(actions, "yield", settings.connectCalendar)}
+          subtitle="Wealth Optimiser"
+          href="/yield"
+        />
+        <AgentCard
+          agent="shield"
+          title={summaryFor(actions, "shield", settings.connectCalendar)}
+          subtitle="Spend Guardian"
+          href="/shield"
+        />
       </div>
 
       <div className="mt-6 px-6">

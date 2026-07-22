@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getDemoUser, syncAgentActions } from "@/lib/db";
+import { syncAgentActions } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { BottomNav } from "@/components/BottomNav";
 import { ActionButtons } from "@/components/ActionButtons";
@@ -31,7 +32,7 @@ export default async function ApprovalsPage({
 }: {
   searchParams: { history?: string };
 }) {
-  const user = await getDemoUser();
+  const user = await requireUser();
   const actions = await syncAgentActions(user.id);
   const showHistory = searchParams?.history === "1";
 

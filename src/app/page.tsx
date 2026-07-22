@@ -12,7 +12,7 @@ export default function SplashPage() {
 
   function enterOrbit() {
     setEntering(true);
-    setTimeout(() => router.push("/dashboard"), 900);
+    setTimeout(() => router.push("/signup"), 900);
   }
 
   return (
@@ -46,7 +46,7 @@ export default function SplashPage() {
             >
               Enter Orbit
             </button>
-            <Link href="/dashboard" className="text-[13px] text-orbit-muted">
+            <Link href="/login" className="text-[13px] text-orbit-muted">
               Already a member? <span className="font-medium text-orbit-pulse">Log in</span>
             </Link>
           </>

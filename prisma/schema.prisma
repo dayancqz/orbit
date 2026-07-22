@@ -17,11 +17,31 @@ model User {
   id            String         @id @default(cuid())
   name          String
   email         String         @unique
+  passwordHash  String
   accounts      Account[]
   calendarEvents CalendarEvent[]
   subscriptions Subscription[]
   agentActions  AgentAction[]
+  guardrails    GuardrailSettings?
   createdAt     DateTime       @default(now())
+}
+
+// The thresholds each agent must stay within — set by the user on the
+// Guardrails screen. One row per user, created with defaults on first read.
+model GuardrailSettings {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id])
+  userId             String   @unique
+  minBalance         Float    @default(1500) // Yield: never recommend transferring below this
+  monthlyAllocation  Float    @default(3000) // Shield: budget the monthly subscription spend is compared against
+  riskComfort        String   @default("Conservative") // "Conservative" | "Moderate" | "Aggressive"
+  connectCalendar    Boolean  @default(true) // Pulse: whether calendar-based trip detection runs at all
+  detectLifeEvents   Boolean  @default(true)
+  preTripDays        Int      @default(7) // Pulse: only surface the pre-trip briefing inside this window
+  flagAfterDays      Int      @default(30) // Shield: flag a subscription once unused this many days
+  autoTripMode       Boolean  @default(true) // Shield: auto-activate Trip Mode when Pulse detects travel
+  allowNegotiation   Boolean  @default(true) // Shield: offer "negotiate" as an option on flagged subscriptions
+  updatedAt          DateTime @updatedAt
 }
 
 model Account {

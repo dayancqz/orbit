@@ -1,4 +1,6 @@
-import { getDemoUser, loadLifeGraph, syncAgentActions } from "@/lib/db";
+import Link from "next/link";
+import { getGuardrails, loadLifeGraph, syncAgentActions } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
 import { findTripEvent } from "@/lib/agents/pulse";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
@@ -31,10 +33,28 @@ function BriefingCard({
 }
 
 export default async function PulsePage() {
-  const user = await getDemoUser();
-  const [graph, actions] = await Promise.all([loadLifeGraph(user.id), syncAgentActions(user.id)]);
+  const user = await requireUser();
+  const [graph, actions, settings] = await Promise.all([
+    loadLifeGraph(user.id),
+    syncAgentActions(user.id),
+    getGuardrails(user.id),
+  ]);
   const trip = findTripEvent(graph);
   const briefing = actions.find((a) => a.id.startsWith("pulse_briefing_"));
+
+  if (!settings.connectCalendar) {
+    return (
+      <AppShell withBottomNav={false}>
+        <PageHeader title="Trip Briefing" backHref="/dashboard" agent="pulse" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-sm text-orbit-muted">
+          <p>Calendar is disconnected, so Pulse can&apos;t detect trips or prepare briefings.</p>
+          <Link href="/settings" className="text-orbit-pulse">
+            Reconnect it in Guardrails →
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!trip) {
     return (
@@ -48,6 +68,7 @@ export default async function PulsePage() {
   }
 
   const days = daysUntil(trip.startsAt);
+  const briefingWindowNotOpenYet = !briefing && days > settings.preTripDays;
 
   return (
     <AppShell withBottomNav={false}>
@@ -94,8 +115,8 @@ export default async function PulsePage() {
       </div>
 
       <div className="border-t border-orbit-border bg-orbit-surface px-6 py-4">
-        {briefing &&
-          (briefing.status === "pending" ? (
+        {briefing ? (
+          briefing.status === "pending" ? (
             <ActionButtons actionId={briefing.id} approveLabel="Approve & Set Aside S$250" />
           ) : (
             <div className="flex justify-center">
@@ -103,7 +124,15 @@ export default async function PulsePage() {
                 {briefing.status === "approved" ? "Approved" : "Dismissed"}
               </StatusChip>
             </div>
-          ))}
+          )
+        ) : (
+          briefingWindowNotOpenYet && (
+            <p className="text-center text-xs text-orbit-muted">
+              Your full briefing and approval request will appear {days - settings.preTripDays} day
+              {days - settings.preTripDays === 1 ? "" : "s"} from now — {settings.preTripDays} days before the trip.
+            </p>
+          )
+        )}
         <p className="mt-2.5 text-center text-[11px] text-orbit-muted">
           Powered by Orbit Pulse · Approved actions are reversible
         </p>

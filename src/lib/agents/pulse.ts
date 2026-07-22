@@ -42,10 +42,14 @@ export function detectLifeEvents(graph: CustomerLifeGraph): AgentAction[] {
 
 export function buildPreTripBriefing(
   graph: CustomerLifeGraph,
-  suggestedSetAside = 250
+  suggestedSetAside = 250,
+  preTripDays = Infinity // only surface the briefing once the trip is within this many days
 ): AgentAction | null {
   const trip = findTripEvent(graph);
   if (!trip) return null;
+
+  const daysUntil = Math.ceil((new Date(trip.startsAt).getTime() - Date.now()) / 86_400_000);
+  if (daysUntil > preTripDays) return null;
 
   return {
     id: `pulse_briefing_${trip.id}`,

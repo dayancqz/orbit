@@ -1,5 +1,6 @@
-import { getDemoUser, loadLifeGraph, syncAgentActions } from "@/lib/db";
-import { BETTER_FD_RATE, FD_TERM_DAYS, MIN_BUFFER } from "@/lib/agents/yieldAgent";
+import { getGuardrails, loadLifeGraph, syncAgentActions } from "@/lib/db";
+import { requireUser } from "@/lib/auth";
+import { BETTER_FD_RATE, FD_TERM_DAYS } from "@/lib/agents/yieldAgent";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
@@ -11,10 +12,15 @@ import { formatSGD } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function YieldPage() {
-  const user = await getDemoUser();
-  const [graph, actions] = await Promise.all([loadLifeGraph(user.id), syncAgentActions(user.id)]);
+  const user = await requireUser();
+  const [graph, actions, settings] = await Promise.all([
+    loadLifeGraph(user.id),
+    syncAgentActions(user.id),
+    getGuardrails(user.id),
+  ]);
   const recommendation = actions.find((a) => a.agent === "yield" && a.actionType === "recommendation");
   const account = graph.accounts.find((a) => `yield_${a.id}` === recommendation?.id) ?? graph.accounts[0];
+  const minBalance = settings.minBalance;
 
   if (!recommendation || !account) {
     return (
@@ -27,8 +33,8 @@ export default async function YieldPage() {
     );
   }
 
-  const transferAmount = account.balance - MIN_BUFFER;
-  const accessiblePct = Math.min(100, Math.max(0, (MIN_BUFFER / account.balance) * 100));
+  const transferAmount = account.balance - minBalance;
+  const accessiblePct = Math.min(100, Math.max(0, (minBalance / account.balance) * 100));
 
   return (
     <AppShell withBottomNav={false}>
@@ -48,7 +54,7 @@ export default async function YieldPage() {
         </span>
         <p className="text-xl font-bold text-white">{FD_TERM_DAYS}-Day Fixed Deposit</p>
         <p className="my-1 text-[28px] font-bold text-orbit-yield">{(BETTER_FD_RATE * 100).toFixed(1)}% p.a.</p>
-        <p className="text-sm text-white">Move {formatSGD(transferAmount)} — keeps {formatSGD(MIN_BUFFER)} accessible</p>
+        <p className="text-sm text-white">Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible</p>
       </div>
 
       <div className="mx-4 mt-3 rounded-xl bg-orbit-card p-4">
@@ -57,8 +63,8 @@ export default async function YieldPage() {
           <div className="h-full rounded-full bg-orbit-yield" style={{ width: `${accessiblePct}%` }} />
         </div>
         <div className="flex justify-between">
-          <span className="text-[11px] text-orbit-yield">{formatSGD(MIN_BUFFER)} accessible</span>
-          <span className="text-[11px] text-orbit-muted">{formatSGD(MIN_BUFFER)} minimum</span>
+          <span className="text-[11px] text-orbit-yield">{formatSGD(minBalance)} accessible</span>
+          <span className="text-[11px] text-orbit-muted">{formatSGD(minBalance)} minimum</span>
         </div>
       </div>
 

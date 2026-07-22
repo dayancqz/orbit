@@ -3,18 +3,31 @@
 // `npm run prisma:migrate`. Run with `npm run seed`.
 
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { sarahLifeGraph } from "../src/lib/mockData";
 
 const prisma = new PrismaClient();
 
+// Demo login: sarah@example.com / password123
+const DEMO_PASSWORD = "password123";
+
 async function main() {
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+
   const user = await prisma.user.upsert({
     where: { email: "sarah@example.com" },
     update: {},
     create: {
       name: sarahLifeGraph.name,
       email: "sarah@example.com",
+      passwordHash,
     },
+  });
+
+  await prisma.guardrailSettings.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: { userId: user.id },
   });
 
   for (const account of sarahLifeGraph.accounts) {

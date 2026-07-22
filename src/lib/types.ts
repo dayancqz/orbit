@@ -55,6 +55,20 @@ export interface PersistedAgentAction extends AgentAction {
   status: ActionStatus;
 }
 
+// Mirrors prisma/schema.prisma's GuardrailSettings — the thresholds each
+// agent must stay within, set by the user on the Guardrails screen.
+export interface GuardrailSettings {
+  minBalance: number;
+  monthlyAllocation: number;
+  riskComfort: "Conservative" | "Moderate" | "Aggressive";
+  connectCalendar: boolean;
+  detectLifeEvents: boolean;
+  preTripDays: number;
+  flagAfterDays: number;
+  autoTripMode: boolean;
+  allowNegotiation: boolean;
+}
+
 export interface CustomerLifeGraph {
   userId: string;
   name: string;
