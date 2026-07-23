@@ -63,10 +63,10 @@ function ProfileIcon({ active }: { active: boolean }) {
 
 const TABS: TabConfig[] = [
   { label: "Home", href: "/dashboard", icon: (active) => <HomeIcon active={active} /> },
-  { label: "Cards", href: null, icon: (active) => <CardIcon active={active} /> },
+  { label: "Cards", href: "/cards", icon: (active) => <CardIcon active={active} /> },
   { label: "Orbit", href: "/approvals", icon: (active) => <OrbitIcon active={active} /> },
-  { label: "Pay", href: null, icon: (active) => <PayIcon active={active} /> },
-  { label: "Profile", href: null, icon: (active) => <ProfileIcon active={active} /> },
+  { label: "Pay", href: "/pay", icon: (active) => <PayIcon active={active} /> },
+  { label: "Profile", href: "/profile", icon: (active) => <ProfileIcon active={active} /> },
 ];
 
 export function BottomNav() {
