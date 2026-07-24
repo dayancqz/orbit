@@ -64,6 +64,46 @@ function hexToRgbChannels(hex: string): string {
   return `${r} ${g} ${b}`;
 }
 
+export function applyThemeVars(mode: ThemeMode, accent: AccentKey) {
+  if (typeof document === "undefined") return;
+
+  const root = document.documentElement;
+  const vars = buildThemeVars(mode, accent);
+
+  Object.entries(vars).forEach(([name, value]) => {
+    root.style.setProperty(name, value);
+  });
+
+  root.style.colorScheme = mode;
+}
+
+export function normalizeAppearance(
+  themeMode?: string | null,
+  accentColor?: string | null,
+): { themeMode: ThemeMode; accentColor: AccentKey } {
+  const resolvedThemeMode = isThemeMode(themeMode ?? "") ? (themeMode as ThemeMode) : DEFAULT_THEME;
+  const resolvedAccentColor = isAccentKey(accentColor ?? "") ? (accentColor as AccentKey) : DEFAULT_ACCENT;
+
+  return { themeMode: resolvedThemeMode, accentColor: resolvedAccentColor };
+}
+
+export function serializeAppearance(themeMode: ThemeMode, accentColor: AccentKey): string {
+  return JSON.stringify({ themeMode, accentColor });
+}
+
+export function parseAppearance(cookieValue?: string | null) {
+  if (!cookieValue) {
+    return normalizeAppearance();
+  }
+
+  try {
+    const parsed = JSON.parse(cookieValue) as { themeMode?: string; accentColor?: string };
+    return normalizeAppearance(parsed.themeMode, parsed.accentColor);
+  } catch {
+    return normalizeAppearance();
+  }
+}
+
 // The full set of CSS custom properties for a given theme/accent
 // combination — injected inline by the root layout so every page (and
 // every visitor, logged in or not) renders with the right look server-side,

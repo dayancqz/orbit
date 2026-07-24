@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { getSessionUser } from "@/lib/auth";
-import { buildThemeVars, DEFAULT_ACCENT, DEFAULT_THEME, isAccentKey, isThemeMode } from "@/lib/theme";
+import { buildThemeVars, parseAppearance } from "@/lib/theme";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -17,8 +18,9 @@ export const metadata: Metadata = {
 // else gets the app default.
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
-  const mode = user && isThemeMode(user.themeMode) ? user.themeMode : DEFAULT_THEME;
-  const accent = user && isAccentKey(user.accentColor) ? user.accentColor : DEFAULT_ACCENT;
+  const appearance = parseAppearance(cookies().get("orbit_appearance")?.value);
+  const mode = appearance.themeMode;
+  const accent = appearance.accentColor;
   const vars = buildThemeVars(mode, accent);
 
   return (

@@ -7,20 +7,29 @@ import { getSessionUserId } from "./session";
 export class AuthError extends Error {}
 
 const MIN_PASSWORD_LENGTH = 8;
+type AuthUser = Pick<User, "id" | "name" | "email" | "passwordHash" | "createdAt">;
+const authUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  passwordHash: true,
+  createdAt: true,
+} as const;
 
-export async function signUp(name: string, email: string, password: string): Promise<User> {
+export async function signUp(name: string, email: string, password: string): Promise<AuthUser> {
   if (!name.trim()) throw new AuthError("Enter your name.");
   if (!email.trim()) throw new AuthError("Enter your email.");
   if (password.length < MIN_PASSWORD_LENGTH) {
     throw new AuthError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: email.trim() } });
+  const existing = await prisma.user.findUnique({ where: { email: email.trim() }, select: authUserSelect });
   if (existing) throw new AuthError("An account with that email already exists — log in instead.");
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: { name: name.trim(), email: email.trim(), passwordHash },
+    select: authUserSelect,
   });
   // Every user gets guardrails from day one, at the same defaults the
   // Settings screen shows — there's no "unconfigured" state to special-case.
@@ -29,8 +38,8 @@ export async function signUp(name: string, email: string, password: string): Pro
   return user;
 }
 
-export async function logIn(email: string, password: string): Promise<User> {
-  const user = await prisma.user.findUnique({ where: { email: email.trim() } });
+export async function logIn(email: string, password: string): Promise<AuthUser> {
+  const user = await prisma.user.findUnique({ where: { email: email.trim() }, select: authUserSelect });
   if (!user) throw new AuthError("No account found with that email — sign up instead.");
 
   const valid = await bcrypt.compare(password, user.passwordHash);
@@ -39,15 +48,15 @@ export async function logIn(email: string, password: string): Promise<User> {
   return user;
 }
 
-export async function getSessionUser(): Promise<User | null> {
+export async function getSessionUser(): Promise<AuthUser | null> {
   const userId = getSessionUserId();
   if (!userId) return null;
-  return prisma.user.findUnique({ where: { id: userId } });
+  return prisma.user.findUnique({ where: { id: userId }, select: authUserSelect });
 }
 
 // For Server Component pages: returns the logged-in user, or redirects to
 // /login if there isn't one. Every protected page starts with this.
-export async function requireUser(): Promise<User> {
+export async function requireUser(): Promise<AuthUser> {
   const user = await getSessionUser();
   if (!user) redirect("/login");
   return user;

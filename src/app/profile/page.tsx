@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { BottomNav } from "@/components/BottomNav";
 import { TabHeader } from "@/components/TabHeader";
 import { LogoutButton } from "@/components/LogoutButton";
 import { AppearancePicker } from "@/components/AppearancePicker";
-import { DEFAULT_ACCENT, DEFAULT_THEME, isAccentKey, isThemeMode } from "@/lib/theme";
+import { parseAppearance } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +27,7 @@ function ProfileLink({ href, label, sub }: { href: string; label: string; sub: s
 
 export default async function ProfilePage() {
   const user = await requireUser();
-  const themeMode = isThemeMode(user.themeMode) ? user.themeMode : DEFAULT_THEME;
-  const accentColor = isAccentKey(user.accentColor) ? user.accentColor : DEFAULT_ACCENT;
+  const appearance = parseAppearance(cookies().get("orbit_appearance")?.value);
 
   return (
     <AppShell>
@@ -42,7 +42,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="flex flex-col gap-3 px-4">
-        <AppearancePicker initialThemeMode={themeMode} initialAccentColor={accentColor} />
+        <AppearancePicker initialThemeMode={appearance.themeMode} initialAccentColor={appearance.accentColor} />
         <ProfileLink href="/settings" label="Guardrails" sub="Thresholds each agent must stay within" />
         <ProfileLink href="/approvals" label="Approval Hub" sub="Review pending and past agent decisions" />
         <ProfileLink href="/notifications" label="Notifications" sub="Everything Orbit has done or flagged" />

@@ -20,7 +20,11 @@ if (process.env.NODE_ENV !== "production") {
 export async function loadLifeGraph(userId: string): Promise<CustomerLifeGraph> {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      createdAt: true,
       accounts: { include: { transactions: { orderBy: { occurredAt: "desc" } } } },
       calendarEvents: true,
       subscriptions: true,

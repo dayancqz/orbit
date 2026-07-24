@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ACCENT_PRESETS, ACCENT_KEYS, type AccentKey, type ThemeMode } from "@/lib/theme";
+import { ACCENT_PRESETS, ACCENT_KEYS, applyThemeVars, type AccentKey, type ThemeMode } from "@/lib/theme";
 
 export function AppearancePicker({
   initialThemeMode,
@@ -16,23 +16,34 @@ export function AppearancePicker({
   const [accentColor, setAccentColor] = useState(initialAccentColor);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    applyThemeVars(themeMode, accentColor);
+  }, [themeMode, accentColor]);
+
   async function save(next: { themeMode?: ThemeMode; accentColor?: AccentKey }) {
-    await fetch("/api/appearance", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
-    });
-    startTransition(() => router.refresh());
+    try {
+      const response = await fetch("/api/appearance", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+
+      if (response.ok) {
+        startTransition(() => router.refresh());
+      }
+    } catch {
+      // ignore and keep the local UI change
+    }
   }
 
   function selectTheme(mode: ThemeMode) {
     setThemeMode(mode);
-    save({ themeMode: mode });
+    void save({ themeMode: mode });
   }
 
   function selectAccent(accent: AccentKey) {
     setAccentColor(accent);
-    save({ accentColor: accent });
+    void save({ accentColor: accent });
   }
 
   return (
