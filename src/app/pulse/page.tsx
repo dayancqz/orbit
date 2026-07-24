@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
+import { PulsePlanner } from "@/components/PulsePlanner";
 import { formatDate, daysUntil } from "@/lib/format";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
@@ -91,6 +92,15 @@ export default async function PulsePage() {
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3">
+        <PulsePlanner
+          initialEvents={graph.calendarEvents.map((event) => ({
+            id: event.id,
+            title: event.title,
+            startsAt: event.startsAt,
+            endsAt: event.endsAt,
+            location: event.location,
+          }))}
+        />
         <BriefingCard
           label="FX RATE ALERT"
           main="Daily monitoring active"
