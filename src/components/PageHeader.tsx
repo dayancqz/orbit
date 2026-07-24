@@ -20,10 +20,10 @@ export function PageHeader({
 
   return (
     <header className="relative flex h-14 shrink-0 items-center bg-orbit-surface px-5">
-      <Link href={backHref} className="mr-2 text-[22px] text-white" aria-label="Back">
+      <Link href={backHref} className="mr-2 text-[22px] text-orbit-text" aria-label="Back">
         ‹
       </Link>
-      <span className="absolute left-1/2 -translate-x-1/2 text-[17px] font-semibold text-white">
+      <span className="absolute left-1/2 -translate-x-1/2 text-[17px] font-semibold text-orbit-text">
         {title}
       </span>
       {agentMeta && (

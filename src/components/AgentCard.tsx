@@ -62,7 +62,7 @@ export function AgentCard({
       </span>
       <span className="min-w-0 flex-1">
         <span className={`block text-[11px] font-semibold ${meta.color}`}>{meta.label}</span>
-        <span className="block truncate text-sm font-semibold text-white">{title}</span>
+        <span className="block truncate text-sm font-semibold text-orbit-text">{title}</span>
         <span className="mt-0.5 block text-xs text-orbit-muted">{subtitle}</span>
       </span>
       <span className="text-lg text-orbit-muted">›</span>

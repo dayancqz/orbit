@@ -10,7 +10,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
     <button
       onClick={onClick}
       type="button"
-      className={`relative h-6 w-11 shrink-0 rounded-full transition ${on ? "bg-orbit-pulse" : "bg-orbit-border"}`}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition ${on ? "bg-orbit-accent" : "bg-orbit-border"}`}
       aria-pressed={on}
     >
       <span
@@ -45,7 +45,7 @@ function Stepper({
       >
         −
       </button>
-      <span className="whitespace-nowrap text-[13px] text-white">
+      <span className="whitespace-nowrap text-[13px] text-orbit-text">
         {value} {suffix}
       </span>
       <button
@@ -75,7 +75,7 @@ function Section({ label, tone, children }: { label: string; tone: string; child
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-orbit-border pb-3 last:border-none last:pb-0">
-      <span className="text-sm text-white">{label}</span>
+      <span className="text-sm text-orbit-text">{label}</span>
       {children}
     </div>
   );
@@ -147,11 +147,11 @@ export function GuardrailsForm({ initial }: { initial: GuardrailSettings }) {
               type="number"
               value={monthlyAllocation}
               onChange={(e) => setMonthlyAllocation(Number(e.target.value))}
-              className="w-24 rounded-lg border border-orbit-border bg-orbit-surface px-2.5 py-1 text-right text-sm text-white"
+              className="w-24 rounded-lg border border-orbit-border bg-orbit-surface px-2.5 py-1 text-right text-sm text-orbit-text"
             />
           </Row>
           <div>
-            <p className="mb-2 text-sm text-white">Risk comfort</p>
+            <p className="mb-2 text-sm text-orbit-text">Risk comfort</p>
             <div className="flex gap-1.5">
               {(["Conservative", "Moderate", "Aggressive"] as const).map((r) => (
                 <button
@@ -206,7 +206,7 @@ export function GuardrailsForm({ initial }: { initial: GuardrailSettings }) {
         <button
           onClick={activate}
           disabled={saving}
-          className="h-[52px] w-full rounded-full bg-orbit-pulse text-[15px] font-semibold text-[#0A0F1E] disabled:opacity-60"
+          className="h-[52px] w-full rounded-full bg-orbit-accent text-[15px] font-semibold text-orbit-accent-contrast disabled:opacity-60"
         >
           {saving ? "Saving…" : "Activate Orbit"}
         </button>

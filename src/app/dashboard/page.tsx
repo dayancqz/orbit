@@ -50,8 +50,8 @@ export default async function DashboardPage() {
     <AppShell>
       <header className="flex h-[72px] shrink-0 items-center justify-between bg-orbit-surface px-6">
         <div className="flex items-center gap-1">
-          <span className="text-lg font-bold text-white">Orbit</span>
-          <span className="ml-1 h-4 w-4 rounded-full border-2 border-orbit-pulse" />
+          <span className="text-lg font-bold text-orbit-text">Orbit</span>
+          <span className="ml-1 h-4 w-4 rounded-full border-2 border-orbit-accent" />
         </div>
         <div className="flex items-center gap-2.5">
           <Link
@@ -82,7 +82,7 @@ export default async function DashboardPage() {
       </header>
 
       <div className="bg-orbit-surface px-6 pb-4 pt-5">
-        <h1 className="text-[26px] font-bold text-white">
+        <h1 className="text-[26px] font-bold text-orbit-text">
           {greeting()}, {user.name}
         </h1>
         <p className="mt-1.5 text-sm text-orbit-muted">
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 px-6">
-        <h2 className="mb-2 text-[15px] font-semibold text-white">Recent Activity</h2>
+        <h2 className="mb-2 text-[15px] font-semibold text-orbit-text">Recent Activity</h2>
         <Timeline actions={actions.slice(0, 6)} />
       </div>
 

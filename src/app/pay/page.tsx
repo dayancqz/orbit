@@ -23,7 +23,7 @@ export default async function PayPage() {
           <>
             <div className="rounded-2xl bg-orbit-card2 p-4">
               <p className="text-xs text-orbit-muted">Available balance · {account.name}</p>
-              <p className="mt-1 text-2xl font-bold text-white">{formatSGD(account.balance)}</p>
+              <p className="mt-1 text-2xl font-bold text-orbit-text">{formatSGD(account.balance)}</p>
             </div>
             <PayForm accountId={account.id} balance={account.balance} />
           </>
@@ -32,7 +32,7 @@ export default async function PayPage() {
         )}
 
         <div>
-          <p className="mb-2 text-sm font-semibold text-white">Recent</p>
+          <p className="mb-2 text-sm font-semibold text-orbit-text">Recent</p>
           {graph.transactions.length === 0 ? (
             <p className="text-sm text-orbit-muted">No transactions yet.</p>
           ) : (
@@ -42,9 +42,9 @@ export default async function PayPage() {
                   key={t.id}
                   className="flex items-center justify-between border-b border-orbit-border py-2.5 last:border-none"
                 >
-                  <span className="text-sm text-white">{t.merchant}</span>
+                  <span className="text-sm text-orbit-text">{t.merchant}</span>
                   <span className="flex flex-col items-end">
-                    <span className="text-sm font-semibold text-white">-{formatSGD(t.amount)}</span>
+                    <span className="text-sm font-semibold text-orbit-text">-{formatSGD(t.amount)}</span>
                     <span className="text-[11px] text-orbit-muted">{formatRelativeTime(t.occurredAt)}</span>
                   </span>
                 </li>

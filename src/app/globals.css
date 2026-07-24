@@ -2,7 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fallback defaults (dark + red) — used before layout.tsx's inline style
+   resolves per-request, and for any markup rendered outside that scope. */
+:root {
+  --orbit-bg: #060606;
+  --orbit-surface: #0d0d0d;
+  --orbit-card: #161616;
+  --orbit-card2: #1f1f1f;
+  --orbit-border: #2c2c2c;
+  --orbit-muted: #9a9a9a;
+  --orbit-text: #ffffff;
+  --orbit-accent-rgb: 255 59 48;
+  --orbit-accent-contrast: #ffffff;
+}
+
 body {
-  background-color: #050a14;
-  color: #e5e7eb;
+  background-color: var(--orbit-bg);
+  color: var(--orbit-text);
 }

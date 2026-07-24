@@ -11,7 +11,7 @@ type TabConfig = {
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-pulse" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M6.5 9.5V21h11V9.5" />
     </svg>
@@ -20,7 +20,7 @@ function HomeIcon({ active }: { active: boolean }) {
 
 function CardIcon({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-pulse" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="5" width="18" height="14" rx="2.5" />
       <path d="M3 10h18" />
       <path d="M7 14h2" />
@@ -30,7 +30,7 @@ function CardIcon({ active }: { active: boolean }) {
 
 function OrbitIcon({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-pulse" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="8" />
       <path d="M12 4v4" />
       <path d="M12 16v4" />
@@ -44,7 +44,7 @@ function OrbitIcon({ active }: { active: boolean }) {
 
 function PayIcon({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-pulse" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="7" width="18" height="10" rx="2" />
       <path d="M3 11h18" />
       <path d="M7 14h1" />
@@ -54,7 +54,7 @@ function PayIcon({ active }: { active: boolean }) {
 
 function ProfileIcon({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-pulse" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M5 20a7 7 0 0 1 14 0" />
     </svg>
@@ -78,13 +78,13 @@ export function BottomNav() {
         const active = tab.href !== null && pathname.startsWith(tab.href);
         const inner = (
           <>
-            {active && <span className="h-1 w-1 rounded-full bg-orbit-pulse" />}
+            {active && <span className="h-1 w-1 rounded-full bg-orbit-accent" />}
             <span
-              className={`flex h-[24px] w-[24px] items-center justify-center rounded-md ${active ? "bg-orbit-pulse/15 text-orbit-pulse" : "text-orbit-muted"}`}
+              className={`flex h-[24px] w-[24px] items-center justify-center rounded-md ${active ? "bg-orbit-accent/15 text-orbit-accent" : "text-orbit-muted"}`}
             >
               {tab.icon(active)}
             </span>
-            <span className={`text-[11px] ${active ? "text-orbit-pulse" : "text-orbit-muted"}`}>
+            <span className={`text-[11px] ${active ? "text-orbit-accent" : "text-orbit-muted"}`}>
               {tab.label}
             </span>
           </>

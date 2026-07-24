@@ -35,14 +35,14 @@ export function ActionButtons({
       <button
         onClick={() => act("approved")}
         disabled={busy}
-        className={`flex flex-1 items-center justify-center rounded-full bg-orbit-pulse font-semibold text-[#0A0F1E] transition disabled:opacity-60 ${sizeClasses}`}
+        className={`flex flex-1 items-center justify-center rounded-full bg-orbit-accent font-semibold text-orbit-accent-contrast transition disabled:opacity-60 ${sizeClasses}`}
       >
         {pendingAction === "approved" ? "Approving…" : approveLabel}
       </button>
       <button
         onClick={() => act("dismissed")}
         disabled={busy}
-        className={`flex flex-1 items-center justify-center rounded-full border border-orbit-border font-medium text-white transition disabled:opacity-60 ${sizeClasses}`}
+        className={`flex flex-1 items-center justify-center rounded-full border border-orbit-border font-medium text-orbit-text transition disabled:opacity-60 ${sizeClasses}`}
       >
         {pendingAction === "dismissed" ? "Dismissing…" : dismissLabel}
       </button>

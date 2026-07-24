@@ -61,7 +61,7 @@ export default async function ShieldPage() {
         <p className="mb-2 text-[11px] font-medium text-orbit-shield">SUBSCRIPTIONS</p>
         <div className="flex">
           <div className="flex-1 border-r border-orbit-border pr-2">
-            <p className={`text-[22px] font-bold ${allocationPct > 100 ? "text-orbit-shield" : "text-white"}`}>
+            <p className={`text-[22px] font-bold ${allocationPct > 100 ? "text-orbit-shield" : "text-orbit-text"}`}>
               {formatSGD(monthlyTotal)}
             </p>
             <p className="mt-0.5 text-xs text-orbit-muted">
@@ -86,7 +86,7 @@ export default async function ShieldPage() {
       </div>
 
       <div className="mx-4 mt-3 flex-1 overflow-hidden rounded-2xl bg-orbit-card">
-        <p className="border-b border-orbit-border px-4 py-3.5 text-[15px] font-semibold text-white">
+        <p className="border-b border-orbit-border px-4 py-3.5 text-[15px] font-semibold text-orbit-text">
           Your Subscriptions
         </p>
         {graph.subscriptions.map((sub) => {
@@ -96,11 +96,11 @@ export default async function ShieldPage() {
 
           return (
             <div key={sub.id} className="flex items-center gap-2.5 border-b border-orbit-border px-4 py-2.5 last:border-none">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orbit-border text-xs font-bold text-white">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orbit-border text-xs font-bold text-orbit-text">
                 {sub.merchant.slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-white">{sub.merchant}</p>
+                <p className="truncate text-sm font-bold text-orbit-text">{sub.merchant}</p>
                 <p className="text-xs text-orbit-muted">{formatSGD(sub.monthlyAmount)}/mo</p>
                 {!cancelled && (
                   <span className="mt-1 inline-block">

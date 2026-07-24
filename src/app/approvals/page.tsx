@@ -43,7 +43,7 @@ export default async function ApprovalsPage({
   return (
     <AppShell>
       <div className="bg-orbit-surface px-6 pb-2 pt-4 text-center">
-        <h1 className="text-[17px] font-semibold text-white">
+        <h1 className="text-[17px] font-semibold text-orbit-text">
           {showHistory ? "Past agent decisions" : "Orbit needs your approval"}
         </h1>
         <p className="mt-1 text-[13px] text-orbit-muted">
@@ -69,7 +69,7 @@ export default async function ApprovalsPage({
               <span className={`h-2 w-2 rounded-full ${AGENT_DOT[action.agent]}`} />
               {AGENT_LABEL[action.agent]}
             </div>
-            <p className="mb-2.5 text-[15px] font-semibold leading-snug text-white">{action.description}</p>
+            <p className="mb-2.5 text-[15px] font-semibold leading-snug text-orbit-text">{action.description}</p>
             {action.status === "pending" ? (
               <ActionButtons actionId={action.id} compact />
             ) : (

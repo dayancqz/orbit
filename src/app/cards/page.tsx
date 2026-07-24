@@ -27,8 +27,8 @@ export default async function CardsPage() {
             className="rounded-2xl border border-orbit-border bg-gradient-to-br from-orbit-card2 to-orbit-card p-5"
           >
             <p className="text-xs font-medium text-orbit-muted">{account.currency} ACCOUNT</p>
-            <p className="mt-1 text-lg font-semibold text-white">{account.name}</p>
-            <p className="mt-4 text-[28px] font-bold text-white">{formatSGD(account.balance)}</p>
+            <p className="mt-1 text-lg font-semibold text-orbit-text">{account.name}</p>
+            <p className="mt-4 text-[28px] font-bold text-orbit-text">{formatSGD(account.balance)}</p>
             <div className="mt-3 flex items-center justify-between">
               <span className="rounded-full bg-orbit-card2 px-2.5 py-1 text-[11px] text-orbit-muted">
                 {(account.interestRate * 100).toFixed(2)}% p.a.

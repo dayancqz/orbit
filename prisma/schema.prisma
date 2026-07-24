@@ -18,6 +18,8 @@ model User {
   name          String
   email         String         @unique
   passwordHash  String
+  themeMode     String         @default("dark") // "dark" | "light"
+  accentColor   String         @default("red") // one of ACCENT_PRESETS in src/lib/theme.ts
   accounts      Account[]
   calendarEvents CalendarEvent[]
   subscriptions Subscription[]

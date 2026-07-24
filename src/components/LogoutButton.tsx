@@ -18,7 +18,7 @@ export function LogoutButton() {
     <button
       onClick={logout}
       disabled={loading}
-      className="flex h-12 w-full items-center justify-center rounded-full border border-orbit-border text-sm font-medium text-white disabled:opacity-60"
+      className="flex h-12 w-full items-center justify-center rounded-full border border-orbit-border text-sm font-medium text-orbit-text disabled:opacity-60"
     >
       {loading ? "Logging out…" : "Log out"}
     </button>

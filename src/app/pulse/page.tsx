@@ -26,7 +26,7 @@ function BriefingCard({
   return (
     <div className="rounded-2xl border border-orbit-border bg-orbit-card p-4">
       <p className="mb-1 text-[11px] font-medium text-orbit-pulse">{label}</p>
-      <p className={`mb-1 text-lg font-bold text-white ${mainClass ?? ""}`}>{main}</p>
+      <p className={`mb-1 text-lg font-bold text-orbit-text ${mainClass ?? ""}`}>{main}</p>
       <p className="text-xs leading-relaxed text-orbit-muted">{sub}</p>
     </div>
   );
@@ -77,7 +77,7 @@ export default async function PulsePage() {
       <div className="bg-gradient-to-b from-orbit-card2 to-orbit-surface px-6 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="text-[28px] font-bold text-white">{trip.title}</h2>
+            <h2 className="text-[28px] font-bold text-orbit-text">{trip.title}</h2>
             <p className="mt-1 text-sm text-orbit-muted">
               {formatDate(trip.startsAt)} · {days >= 0 ? `${days} day${days === 1 ? "" : "s"} away` : "in progress"}
             </p>

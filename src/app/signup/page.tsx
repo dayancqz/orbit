@@ -43,7 +43,7 @@ export default function SignupPage() {
     <div className="min-h-screen bg-orbit-bg">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-8 py-12">
         <div className="mb-8 text-center">
-          <p className="text-3xl font-bold text-white">Orbit</p>
+          <p className="text-3xl font-bold text-orbit-text">Orbit</p>
           <p className="mt-1 text-sm text-orbit-muted">Create your account</p>
         </div>
 
@@ -52,34 +52,34 @@ export default function SignupPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             placeholder="Email"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="Password (min 8 characters)"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           <input
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             type="password"
             placeholder="Confirm password"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           {error && <p className="text-xs text-orbit-shield">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 h-[52px] rounded-full bg-orbit-pulse text-[15px] font-semibold text-[#0A0F1E] disabled:opacity-60"
+            className="mt-2 h-[52px] rounded-full bg-orbit-accent text-[15px] font-semibold text-orbit-accent-contrast disabled:opacity-60"
           >
             {submitting ? "Creating account…" : "Create account"}
           </button>
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
         <p className="mt-6 text-center text-[13px] text-orbit-muted">
           Already a member?{" "}
-          <Link href="/login" className="font-medium text-orbit-pulse">
+          <Link href="/login" className="font-medium text-orbit-accent">
             Log in
           </Link>
         </p>

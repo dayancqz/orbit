@@ -42,7 +42,7 @@ export default async function NotificationsPage() {
                   </span>
                   <span className="shrink-0 text-[11px] text-orbit-muted">{formatRelativeTime(a.timestamp)}</span>
                 </div>
-                <p className="mb-2 text-sm text-white">{a.description}</p>
+                <p className="mb-2 text-sm text-orbit-text">{a.description}</p>
                 {a.requiresApproval && (
                   <StatusChip tone={a.status === "approved" ? "green" : a.status === "dismissed" ? "muted" : "amber"}>
                     {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}

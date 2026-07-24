@@ -20,7 +20,7 @@ export function Timeline({ actions }: { actions: PersistedAgentAction[] }) {
           className="flex items-center gap-2.5 border-b border-orbit-border py-3 last:border-none"
         >
           <span className={`h-2 w-2 shrink-0 rounded-full ${DOT_COLOR[action.agent]}`} />
-          <span className="flex-1 truncate text-[13px] text-white">{action.description}</span>
+          <span className="flex-1 truncate text-[13px] text-orbit-text">{action.description}</span>
           <span className="shrink-0 text-[11px] text-orbit-muted">
             {formatRelativeTime(action.timestamp)}
           </span>

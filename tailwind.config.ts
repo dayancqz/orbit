@@ -9,12 +9,21 @@ const config: Config = {
     extend: {
       colors: {
         orbit: {
-          bg: "#050a14",
-          surface: "#0a0e1a",
-          card: "#141d2f",
-          card2: "#1a2438",
-          border: "#2a3a5c",
-          muted: "#b0b8c9",
+          // User-customizable (see src/lib/theme.ts + app/layout.tsx, which
+          // sets these CSS variables per-request based on the logged-in
+          // user's saved theme/accent).
+          bg: "var(--orbit-bg)",
+          surface: "var(--orbit-surface)",
+          card: "var(--orbit-card)",
+          card2: "var(--orbit-card2)",
+          border: "var(--orbit-border)",
+          muted: "var(--orbit-muted)",
+          text: "var(--orbit-text)",
+          accent: "rgb(var(--orbit-accent-rgb) / <alpha-value>)",
+          "accent-contrast": "var(--orbit-accent-contrast)",
+          // Fixed agent brand colors — not user-customizable, since they're
+          // how Pulse/Yield/Shield stay visually distinguishable regardless
+          // of a user's accent choice.
           pulse: "#22d3ee",
           yield: "#2dd4bf",
           shield: "#ef4444",

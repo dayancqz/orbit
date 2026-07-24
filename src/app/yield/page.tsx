@@ -42,7 +42,7 @@ export default async function YieldPage() {
 
       <div className="border-t-[3px] border-orbit-yield bg-orbit-card px-6 py-4">
         <p className="mb-1 text-[11px] font-medium text-orbit-yield">IDLE FUNDS DETECTED</p>
-        <p className="text-2xl font-bold text-white">
+        <p className="text-2xl font-bold text-orbit-text">
           {formatSGD(account.balance)} idle in {account.name}
         </p>
         <p className="mt-1 text-[13px] text-orbit-muted">This money could be earning interest</p>
@@ -52,13 +52,13 @@ export default async function YieldPage() {
         <span className="mb-2 inline-block rounded-full bg-orbit-yield/15 px-2.5 py-0.5 text-[11px] font-medium text-orbit-yield">
           RECOMMENDED
         </span>
-        <p className="text-xl font-bold text-white">{FD_TERM_DAYS}-Day Fixed Deposit</p>
+        <p className="text-xl font-bold text-orbit-text">{FD_TERM_DAYS}-Day Fixed Deposit</p>
         <p className="my-1 text-[28px] font-bold text-orbit-yield">{(BETTER_FD_RATE * 100).toFixed(1)}% p.a.</p>
-        <p className="text-sm text-white">Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible</p>
+        <p className="text-sm text-orbit-text">Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible</p>
       </div>
 
       <div className="mx-4 mt-3 rounded-xl bg-orbit-card p-4">
-        <p className="mb-2.5 text-sm text-white">Your safety buffer is protected</p>
+        <p className="mb-2.5 text-sm text-orbit-text">Your safety buffer is protected</p>
         <div className="relative mb-1.5 h-2 rounded-full bg-orbit-border">
           <div className="h-full rounded-full bg-orbit-yield" style={{ width: `${accessiblePct}%` }} />
         </div>
@@ -71,7 +71,7 @@ export default async function YieldPage() {
       <div className="mx-4 mt-3 flex-1 rounded-xl bg-orbit-card p-4">
         <p className="mb-2 text-xs text-orbit-muted">Other options (indicative rates)</p>
         <div className="flex items-center justify-between border-b border-orbit-border py-2.5">
-          <span className="text-sm text-white">{FD_TERM_DAYS}-Day Fixed Deposit</span>
+          <span className="text-sm text-orbit-text">{FD_TERM_DAYS}-Day Fixed Deposit</span>
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-orbit-yield">{(BETTER_FD_RATE * 100).toFixed(1)}% p.a.</span>
             <StatusChip tone="green">Best</StatusChip>

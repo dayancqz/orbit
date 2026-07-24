@@ -55,7 +55,7 @@ export function PayForm({ accountId, balance }: { accountId: string; balance: nu
           value={merchant}
           onChange={(e) => setMerchant(e.target.value)}
           placeholder="e.g. Grab, a friend, a bill"
-          className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-white placeholder:text-orbit-muted"
+          className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-orbit-text placeholder:text-orbit-muted"
         />
       </div>
       <div>
@@ -67,14 +67,14 @@ export function PayForm({ accountId, balance }: { accountId: string; balance: nu
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"
-          className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-white placeholder:text-orbit-muted"
+          className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-orbit-text placeholder:text-orbit-muted"
         />
       </div>
       {error && <p className="text-xs text-orbit-shield">{error}</p>}
       <button
         type="submit"
         disabled={submitting}
-        className="h-12 rounded-full bg-orbit-pulse text-sm font-semibold text-[#0A0F1E] disabled:opacity-60"
+        className="h-12 rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
       >
         {submitting ? "Sending…" : "Send"}
       </button>

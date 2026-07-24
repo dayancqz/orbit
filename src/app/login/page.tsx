@@ -38,7 +38,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-orbit-bg">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-8 py-12">
         <div className="mb-8 text-center">
-          <p className="text-3xl font-bold text-white">Orbit</p>
+          <p className="text-3xl font-bold text-orbit-text">Orbit</p>
           <p className="mt-1 text-sm text-orbit-muted">Log in to your account</p>
         </div>
 
@@ -48,20 +48,20 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             placeholder="Email"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
             placeholder="Password"
-            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-white placeholder:text-orbit-muted"
+            className="h-12 rounded-lg border border-orbit-border bg-orbit-card px-4 text-sm text-orbit-text placeholder:text-orbit-muted"
           />
           {error && <p className="text-xs text-orbit-shield">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 h-[52px] rounded-full bg-orbit-pulse text-[15px] font-semibold text-[#0A0F1E] disabled:opacity-60"
+            className="mt-2 h-[52px] rounded-full bg-orbit-accent text-[15px] font-semibold text-orbit-accent-contrast disabled:opacity-60"
           >
             {submitting ? "Logging in…" : "Log in"}
           </button>
@@ -69,7 +69,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-[13px] text-orbit-muted">
           New to Orbit?{" "}
-          <Link href="/signup" className="font-medium text-orbit-pulse">
+          <Link href="/signup" className="font-medium text-orbit-accent">
             Sign up
           </Link>
         </p>
