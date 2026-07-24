@@ -1,8 +1,10 @@
-import { getGuardrails } from "@/lib/db";
+import { getGuardrails, getCalendarConnection } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
+import { isGoogleCalendarConfigured } from "@/lib/googleCalendar";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { GuardrailsForm } from "@/components/GuardrailsForm";
+import { GoogleCalendarConnection } from "@/components/GoogleCalendarConnection";
 
 // Reads live DB state (the user's saved guardrails), so this must never be
 // served from Next's static prerender cache.
@@ -10,7 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const user = await requireUser();
-  const settings = await getGuardrails(user.id);
+  const [settings, connection] = await Promise.all([
+    getGuardrails(user.id),
+    getCalendarConnection(user.id),
+  ]);
 
   return (
     <AppShell withBottomNav={false}>
@@ -18,6 +23,16 @@ export default async function SettingsPage() {
       <p className="px-6 pb-2 pt-1 text-center text-[13px] text-orbit-muted">
         Orbit acts within these rules. Change anytime.
       </p>
+      <div className="px-4 pb-1">
+        <GoogleCalendarConnection
+          configured={isGoogleCalendarConfigured()}
+          connection={
+            connection
+              ? { email: connection.email, lastSyncedAt: connection.lastSyncedAt?.toISOString() ?? null }
+              : null
+          }
+        />
+      </div>
       <GuardrailsForm initial={settings} />
     </AppShell>
   );

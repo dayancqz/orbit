@@ -5,9 +5,10 @@
 
 import { PrismaClient } from "@prisma/client";
 import type { AgentName, CustomerLifeGraph, GuardrailSettings, PersistedAgentAction } from "./types";
-import { detectLifeEvents, buildPreTripBriefing, findTripEvent } from "./agents/pulse";
+import { detectLifeEvents, buildPreTripBriefing, findTripEvent, looksLikeTripTitle } from "./agents/pulse";
 import { findIdleMoney } from "./agents/yieldAgent";
 import { flagUnusedSubscriptions, activateTripMode } from "./agents/shield";
+import { fetchUpcomingEvents, refreshAccessToken, type GoogleTokens } from "./googleCalendar";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -118,6 +119,115 @@ export async function updateGuardrails(
   };
 }
 
+// Display-only view of a connection — never exposes the stored tokens.
+export async function getCalendarConnection(userId: string) {
+  return prisma.calendarConnection.findUnique({
+    where: { userId },
+    select: { provider: true, email: true, lastSyncedAt: true, createdAt: true },
+  });
+}
+
+export async function upsertCalendarConnection(userId: string, tokens: GoogleTokens, email: string | null) {
+  const existing = await prisma.calendarConnection.findUnique({ where: { userId } });
+  const refreshToken = tokens.refreshToken ?? existing?.refreshToken;
+  if (!refreshToken) {
+    throw new Error("Google didn't return a refresh token — try disconnecting and reconnecting.");
+  }
+
+  await prisma.calendarConnection.upsert({
+    where: { userId },
+    update: {
+      accessToken: tokens.accessToken,
+      refreshToken,
+      expiresAt: tokens.expiresAt,
+      email: email ?? existing?.email,
+    },
+    create: { userId, accessToken: tokens.accessToken, refreshToken, expiresAt: tokens.expiresAt, email },
+  });
+}
+
+export async function disconnectGoogleCalendar(userId: string) {
+  await prisma.calendarEvent.deleteMany({ where: { userId, source: "google" } });
+  await prisma.calendarConnection.deleteMany({ where: { userId } });
+}
+
+async function getValidGoogleAccessToken(userId: string): Promise<string | null> {
+  const conn = await prisma.calendarConnection.findUnique({ where: { userId } });
+  if (!conn) return null;
+
+  const expiringSoon = conn.expiresAt.getTime() - Date.now() < 60_000;
+  if (!expiringSoon) return conn.accessToken;
+
+  const refreshed = await refreshAccessToken(conn.refreshToken);
+  await prisma.calendarConnection.update({
+    where: { userId },
+    data: { accessToken: refreshed.accessToken, expiresAt: refreshed.expiresAt },
+  });
+  return refreshed.accessToken;
+}
+
+const SYNC_THROTTLE_MS = 5 * 60_000;
+
+// Pulls upcoming events from the user's connected Google Calendar and
+// upserts only the trip-looking ones into CalendarEvent (source: "google")
+// — using the same rule Pulse itself uses to spot a trip, so nothing here
+// can disagree with what detectLifeEvents() decides. This keeps the rest
+// of a user's calendar (meetings, dinners, etc.) out of our database
+// entirely; we only ever persist what the agents actually act on.
+//
+// Throttled to once every 5 minutes per user unless forced, so normal page
+// navigation doesn't hit Google's API on every request.
+export async function syncGoogleCalendarEvents(userId: string, force = false): Promise<number> {
+  const conn = await prisma.calendarConnection.findUnique({ where: { userId } });
+  if (!conn) return 0;
+  if (!force && conn.lastSyncedAt && Date.now() - conn.lastSyncedAt.getTime() < SYNC_THROTTLE_MS) {
+    return 0;
+  }
+
+  const accessToken = await getValidGoogleAccessToken(userId);
+  if (!accessToken) return 0;
+
+  const events = await fetchUpcomingEvents(accessToken);
+  const tripEvents = events.filter((e) => looksLikeTripTitle(e.title));
+
+  for (const event of tripEvents) {
+    await prisma.calendarEvent.upsert({
+      where: { userId_externalId: { userId, externalId: event.id } },
+      update: {
+        title: event.title,
+        location: event.location,
+        startsAt: new Date(event.startsAt),
+        endsAt: new Date(event.endsAt),
+      },
+      create: {
+        userId,
+        title: event.title,
+        location: event.location,
+        startsAt: new Date(event.startsAt),
+        endsAt: new Date(event.endsAt),
+        source: "google",
+        externalId: event.id,
+      },
+    });
+  }
+
+  // Drop previously-synced events Google no longer returns (cancelled,
+  // renamed to something that no longer looks like a trip, etc.) — manual
+  // entries are untouched since they're a different `source`.
+  const currentIds = tripEvents.map((e) => e.id);
+  await prisma.calendarEvent.deleteMany({
+    where: {
+      userId,
+      source: "google",
+      externalId: { notIn: currentIds.length > 0 ? currentIds : ["__none__"] },
+    },
+  });
+
+  await prisma.calendarConnection.update({ where: { userId }, data: { lastSyncedAt: new Date() } });
+
+  return tripEvents.length;
+}
+
 // Runs every agent's rule engine — within the guardrails the user has
 // configured — against the current life graph, and upserts the results
 // into AgentAction: creating new rows as "pending", but never overwriting
@@ -129,7 +239,15 @@ export async function updateGuardrails(
 // it was never acted on, so there's nothing to preserve. Anything already
 // approved or dismissed is left alone; that's real history.
 export async function syncAgentActions(userId: string): Promise<PersistedAgentAction[]> {
-  const [graph, settings] = await Promise.all([loadLifeGraph(userId), getGuardrails(userId)]);
+  const settings = await getGuardrails(userId);
+  if (settings.connectCalendar) {
+    await syncGoogleCalendarEvents(userId).catch(() => {
+      // A Google API hiccup shouldn't take down the whole page — the agents
+      // just run against whatever calendar data is already in the DB.
+    });
+  }
+
+  const graph = await loadLifeGraph(userId);
   const trip = settings.connectCalendar ? findTripEvent(graph) : undefined;
   const briefing = trip ? buildPreTripBriefing(graph, 250, settings.preTripDays) : null;
 

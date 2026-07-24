@@ -7,8 +7,16 @@ import type { AgentAction, CustomerLifeGraph, LifeGraphCalendarEvent } from "../
 
 const TRIP_KEYWORDS = ["flight", "trip", "hotel", "vacation"];
 
+// Exported so a synced calendar source (see src/lib/googleCalendar.ts) can
+// filter to trip-like events using the exact same rule as detection —
+// keeping only what's relevant rather than importing a user's entire
+// calendar verbatim.
+export function looksLikeTripTitle(title: string): boolean {
+  return TRIP_KEYWORDS.some((kw) => title.toLowerCase().includes(kw));
+}
+
 function looksLikeTrip(event: LifeGraphCalendarEvent): boolean {
-  return TRIP_KEYWORDS.some((kw) => event.title.toLowerCase().includes(kw));
+  return looksLikeTripTitle(event.title);
 }
 
 // Shared by the Shield agent (Trip Mode) and the Pulse/Shield pages, so

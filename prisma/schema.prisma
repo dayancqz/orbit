@@ -25,7 +25,23 @@ model User {
   subscriptions Subscription[]
   agentActions  AgentAction[]
   guardrails    GuardrailSettings?
+  calendarConnection CalendarConnection?
   createdAt     DateTime       @default(now())
+}
+
+// A linked external calendar account (see src/lib/googleCalendar.ts). One
+// row per user — connecting a new account replaces the old one.
+model CalendarConnection {
+  id           String    @id @default(cuid())
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String    @unique
+  provider     String    @default("google")
+  email        String? // the connected account's email, for display only
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
 }
 
 // The thresholds each agent must stay within — set by the user on the
@@ -78,6 +94,10 @@ model CalendarEvent {
   endsAt    DateTime
   // Orbit Pulse reads this to infer life events (trips, moves, etc.)
   inferredEventType String? // "trip" | "relocation" | "unknown"
+  source     String   @default("manual") // "manual" | "google"
+  externalId String? // the source calendar's event id, for de-duping on re-sync
+
+  @@unique([userId, externalId])
 }
 
 model Subscription {
