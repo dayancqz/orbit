@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { BottomNav } from "@/components/BottomNav";
 import { TabHeader } from "@/components/TabHeader";
+import { AddAccountForm } from "@/components/AddAccountForm";
 import { formatSGD } from "@/lib/format";
 
 // Reads live DB state (account balances change via Pay/Yield), so this
@@ -39,6 +40,7 @@ export default async function CardsPage() {
             </div>
           </div>
         ))}
+        <AddAccountForm />
       </div>
       <BottomNav />
     </AppShell>

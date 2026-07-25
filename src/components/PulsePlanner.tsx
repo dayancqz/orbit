@@ -1,33 +1,68 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export function PulsePlanner({ initialEvents }: { initialEvents: Array<{ id: string; title: string; startsAt: string; endsAt: string; location?: string }> }) {
-  const [events, setEvents] = useState(initialEvents);
+interface PlannerEvent {
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  location?: string;
+  source: "manual" | "google";
+}
+
+export function PulsePlanner({ events }: { events: PlannerEvent[] }) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [location, setLocation] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  function addEvent(e: React.FormEvent) {
+  async function addEvent(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !startsAt || !endsAt) return;
+    setError(null);
 
-    const nextEvent = {
-      id: `manual_${Date.now()}`,
-      title: title.trim(),
-      startsAt,
-      endsAt,
-      location: location.trim() || undefined,
-    };
+    if (!title.trim() || !startsAt || !endsAt) {
+      setError("Fill in a title and both dates");
+      return;
+    }
 
-    setEvents((current) => [nextEvent, ...current]);
+    setBusy(true);
+    const res = await fetch("/api/calendar/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title.trim(),
+        startsAt: new Date(startsAt).toISOString(),
+        endsAt: new Date(endsAt).toISOString(),
+        location: location.trim() || undefined,
+      }),
+    });
+    setBusy(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Couldn't save that plan");
+      return;
+    }
+
     setTitle("");
     setStartsAt("");
     setEndsAt("");
     setLocation("");
     setIsOpen(false);
+    router.refresh();
+  }
+
+  async function deleteEvent(id: string) {
+    setBusy(true);
+    await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
+    setBusy(false);
+    router.refresh();
   }
 
   return (
@@ -72,12 +107,17 @@ export function PulsePlanner({ initialEvents }: { initialEvents: Array<{ id: str
               className="w-full rounded-xl border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-orbit-text outline-none"
             />
           </div>
+          {error && <p className="mt-2 text-xs text-orbit-shield">{error}</p>}
           <div className="mt-3 flex items-center justify-end gap-2">
             <button type="button" onClick={() => setIsOpen(false)} className="rounded-full px-3 py-1.5 text-sm text-orbit-muted">
               Cancel
             </button>
-            <button type="submit" className="rounded-full bg-orbit-pulse px-3 py-1.5 text-sm font-semibold text-white">
-              Save plan
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-full bg-orbit-pulse px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {busy ? "Saving…" : "Save plan"}
             </button>
           </div>
         </form>
@@ -91,15 +131,19 @@ export function PulsePlanner({ initialEvents }: { initialEvents: Array<{ id: str
                 <p className="text-sm font-semibold text-orbit-text">{event.title}</p>
                 <p className="mt-1 text-xs text-orbit-muted">
                   {new Date(event.startsAt).toLocaleString()} {event.location ? `• ${event.location}` : ""}
+                  {event.source === "google" ? " • synced from Google" : ""}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setEvents((current) => current.filter((item) => item.id !== event.id))}
-                className="rounded-full px-2 py-1 text-xs font-semibold text-orbit-muted hover:bg-orbit-surface"
-              >
-                Delete
-              </button>
+              {event.source === "manual" && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => deleteEvent(event.id)}
+                  className="rounded-full px-2 py-1 text-xs font-semibold text-orbit-muted hover:bg-orbit-surface disabled:opacity-60"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           ))}
         </div>

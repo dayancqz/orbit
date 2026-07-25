@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
+import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
 import { formatSGD, daysSince } from "@/lib/format";
 import type { PersistedAgentAction } from "@/lib/types";
 
@@ -95,30 +96,33 @@ export default async function ShieldPage() {
           const cancelled = sub.status === "cancelled";
 
           return (
-            <div key={sub.id} className="flex items-center gap-2.5 border-b border-orbit-border px-4 py-2.5 last:border-none">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orbit-border text-xs font-bold text-orbit-text">
-                {sub.merchant.slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold text-orbit-text">{sub.merchant}</p>
-                <p className="text-xs text-orbit-muted">{formatSGD(sub.monthlyAmount)}/mo</p>
-                {!cancelled && (
-                  <span className="mt-1 inline-block">
-                    <StatusChip tone={usage.tone}>{usage.text}</StatusChip>
-                  </span>
-                )}
+            <div key={sub.id} className="border-b border-orbit-border px-4 py-2.5 last:border-none">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orbit-border text-xs font-bold text-orbit-text">
+                  {sub.merchant.slice(0, 2).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-orbit-text">{sub.merchant}</p>
+                  <p className="text-xs text-orbit-muted">{formatSGD(sub.monthlyAmount)}/mo</p>
+                  {!cancelled && (
+                    <span className="mt-1 inline-block">
+                      <StatusChip tone={usage.tone}>{usage.text}</StatusChip>
+                    </span>
+                  )}
+                </div>
+                <div className="shrink-0">
+                  {cancelled ? (
+                    <StatusChip tone="muted">Cancelled</StatusChip>
+                  ) : action && action.status === "pending" ? (
+                    <ActionButtons actionId={action.id} approveLabel="Cancel" dismissLabel="Keep" compact />
+                  ) : action && action.status === "dismissed" ? (
+                    <StatusChip tone="muted">Kept</StatusChip>
+                  ) : (
+                    <span className="text-xs font-medium text-orbit-yield">Active</span>
+                  )}
+                </div>
               </div>
-              <div className="shrink-0">
-                {cancelled ? (
-                  <StatusChip tone="muted">Cancelled</StatusChip>
-                ) : action && action.status === "pending" ? (
-                  <ActionButtons actionId={action.id} approveLabel="Cancel" dismissLabel="Keep" compact />
-                ) : action && action.status === "dismissed" ? (
-                  <StatusChip tone="muted">Kept</StatusChip>
-                ) : (
-                  <span className="text-xs font-medium text-orbit-yield">Active</span>
-                )}
-              </div>
+              {action && <ReasoningDisclosure reasoning={action.reasoning} />}
             </div>
           );
         })}

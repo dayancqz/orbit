@@ -25,16 +25,24 @@ export function flagUnusedSubscriptions(
 ): AgentAction[] {
   return graph.subscriptions
     .filter((sub) => sub.status === "active" && isUnused(sub, flagAfterDays))
-    .map((sub) => ({
-      id: `shield_${sub.id}`,
-      agent: "shield" as const,
-      actionType: "recommendation" as const,
-      description: `"${sub.merchant}" (S$${sub.monthlyAmount}/mo) looks forgotten — unused for ${
-        sub.lastUsedAt ? `${daysSince(sub.lastUsedAt)} days` : "a while"
-      }. Cancel${allowNegotiation ? " or negotiate a better rate" : ""}?`,
-      requiresApproval: true,
-      timestamp: new Date().toISOString(),
-    }));
+    .map((sub) => {
+      const since = sub.lastUsedAt ? daysSince(sub.lastUsedAt) : null;
+      return {
+        id: `shield_${sub.id}`,
+        agent: "shield" as const,
+        actionType: "recommendation" as const,
+        description: `"${sub.merchant}" (S$${sub.monthlyAmount}/mo) looks forgotten — unused for ${
+          since !== null ? `${since} days` : "a while"
+        }. Cancel${allowNegotiation ? " or negotiate a better rate" : ""}?`,
+        reasoning:
+          since !== null
+            ? `Last used ${since} days ago, past your ${flagAfterDays}-day "flag after" threshold.`
+            : `No usage history recorded, and its usage score is below the low-usage threshold.`,
+        amount: sub.monthlyAmount,
+        requiresApproval: true,
+        timestamp: new Date().toISOString(),
+      };
+    });
 }
 
 export function activateTripMode(trip: { id: string; title: string }): AgentAction {
@@ -43,6 +51,7 @@ export function activateTripMode(trip: { id: string; title: string }): AgentActi
     agent: "shield",
     actionType: "autonomous_action",
     description: `Trip Mode activated for "${trip.title}": tighter transaction watch is on for the duration of the trip.`,
+    reasoning: `Orbit Pulse detected "${trip.title}" as an upcoming trip, and your "Auto Trip Mode" guardrail is on.`,
     requiresApproval: false, // passive monitoring change, not a money movement
     timestamp: new Date().toISOString(),
   };

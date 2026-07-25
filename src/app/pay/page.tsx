@@ -13,20 +13,13 @@ export const dynamic = "force-dynamic";
 export default async function PayPage() {
   const user = await requireUser();
   const graph = await loadLifeGraph(user.id);
-  const account = graph.accounts[0];
 
   return (
     <AppShell>
       <TabHeader title="Pay" />
       <div className="flex flex-col gap-4 px-6 py-4">
-        {account ? (
-          <>
-            <div className="rounded-2xl bg-orbit-card2 p-4">
-              <p className="text-xs text-orbit-muted">Available balance · {account.name}</p>
-              <p className="mt-1 text-2xl font-bold text-orbit-text">{formatSGD(account.balance)}</p>
-            </div>
-            <PayForm accountId={account.id} balance={account.balance} />
-          </>
+        {graph.accounts.length > 0 ? (
+          <PayForm accounts={graph.accounts} />
         ) : (
           <p className="py-10 text-center text-sm text-orbit-muted">No account to pay from yet.</p>
         )}

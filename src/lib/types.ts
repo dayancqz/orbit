@@ -26,6 +26,7 @@ export interface LifeGraphCalendarEvent {
   startsAt: string;
   endsAt: string;
   inferredEventType?: "trip" | "relocation" | "unknown";
+  source: "manual" | "google";
 }
 
 export interface LifeGraphSubscription {
@@ -44,6 +45,13 @@ export interface AgentAction {
   agent: AgentName;
   actionType: "recommendation" | "autonomous_action";
   description: string;
+  // Plain-English "why" — the specific guardrail/threshold that triggered
+  // this action, distinct from the description's summary of what it does.
+  reasoning?: string;
+  // The SGD figure this action is about, if any — structured so downstream
+  // logic (e.g. the post-trip summary) never has to parse it back out of
+  // the description text.
+  amount?: number;
   requiresApproval: boolean;
   timestamp: string;
 }

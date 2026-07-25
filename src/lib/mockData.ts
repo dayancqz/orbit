@@ -19,6 +19,13 @@ export const sarahLifeGraph: CustomerLifeGraph = {
       interestRate: 0.0005, // 0.05% — sitting idle
       currency: "SGD",
     },
+    {
+      id: "acc_bonus_savings",
+      name: "Bonus Savings",
+      balance: 2200,
+      interestRate: 0.0008, // also idle — demonstrates multi-account Yield recommendations
+      currency: "SGD",
+    },
   ],
   transactions: [
     {
@@ -36,6 +43,7 @@ export const sarahLifeGraph: CustomerLifeGraph = {
       location: "Seoul, South Korea",
       startsAt: daysFromNow(6),
       endsAt: daysFromNow(11),
+      source: "manual",
     },
   ],
   subscriptions: [

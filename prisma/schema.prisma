@@ -26,7 +26,34 @@ model User {
   agentActions  AgentAction[]
   guardrails    GuardrailSettings?
   calendarConnection CalendarConnection?
+  pushSubscriptions PushSubscription[]
+  tripLearning  TripLearning?
   createdAt     DateTime       @default(now())
+}
+
+// A browser's Web Push subscription (see src/lib/push.ts). A user can have
+// more than one — one per browser/device they've enabled notifications on.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+// A simple running average of actual-vs-predicted trip spend, updated by
+// the post-trip summary in src/lib/agents/pulse.ts — this is what lets
+// future pre-trip briefings suggest a learned amount instead of a flat
+// default.
+model TripLearning {
+  id                       String   @id @default(cuid())
+  user                     User     @relation(fields: [userId], references: [id])
+  userId                   String   @unique
+  avgActualVsPredictedRatio Float   @default(1)
+  tripCount                Int      @default(0)
+  updatedAt                DateTime @updatedAt
 }
 
 // A linked external calendar account (see src/lib/googleCalendar.ts). One
@@ -124,8 +151,11 @@ model AgentAction {
   agent       String // "pulse" | "yield" | "shield"
   actionType  String // "recommendation" | "autonomous_action"
   description String
+  reasoning   String? // plain-English "why" — the guardrail/threshold that triggered it
+  amount      Float? // the SGD figure this action is about, if any (structured, not parsed from description)
   requiresApproval Boolean @default(true)
   status      String   @default("pending") // "pending" | "approved" | "dismissed"
   approvedAt  DateTime?
+  notifiedAt  DateTime? // set once a push notification has been sent for this action
   createdAt   DateTime @default(now())
 }

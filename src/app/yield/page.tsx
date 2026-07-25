@@ -1,46 +1,38 @@
 import { getGuardrails, loadLifeGraph, syncAgentActions } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { BETTER_FD_RATE, FD_TERM_DAYS } from "@/lib/agents/yieldAgent";
+import { YIELD_TIERS, MIN_BUFFER } from "@/lib/agents/yieldAgent";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
+import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
 import { formatSGD } from "@/lib/format";
+import type { GuardrailSettings, LifeGraphAccount, PersistedAgentAction } from "@/lib/types";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
 // must never be served from Next's static prerender cache.
 export const dynamic = "force-dynamic";
 
-export default async function YieldPage() {
-  const user = await requireUser();
-  const [graph, actions, settings] = await Promise.all([
-    loadLifeGraph(user.id),
-    syncAgentActions(user.id),
-    getGuardrails(user.id),
-  ]);
-  const recommendation = actions.find((a) => a.agent === "yield" && a.actionType === "recommendation");
-  const account = graph.accounts.find((a) => `yield_${a.id}` === recommendation?.id) ?? graph.accounts[0];
-  const minBalance = settings.minBalance;
+const TIER_ORDER: GuardrailSettings["riskComfort"][] = ["Conservative", "Moderate", "Aggressive"];
 
-  if (!recommendation || !account) {
-    return (
-      <AppShell withBottomNav={false}>
-        <PageHeader title="Money Optimisation" backHref="/dashboard" agent="yield" />
-        <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-orbit-muted">
-          No idle money detected right now.
-        </div>
-      </AppShell>
-    );
-  }
-
-  const transferAmount = account.balance - minBalance;
+function RecommendationCard({
+  account,
+  recommendation,
+  minBalance,
+  riskComfort,
+}: {
+  account: LifeGraphAccount;
+  recommendation: PersistedAgentAction;
+  minBalance: number;
+  riskComfort: GuardrailSettings["riskComfort"];
+}) {
+  const tier = YIELD_TIERS[riskComfort];
+  const transferAmount = recommendation.amount ?? account.balance - minBalance;
   const accessiblePct = Math.min(100, Math.max(0, (minBalance / account.balance) * 100));
 
   return (
-    <AppShell withBottomNav={false}>
-      <PageHeader title="Money Optimisation" backHref="/dashboard" agent="yield" />
-
-      <div className="border-t-[3px] border-orbit-yield bg-orbit-card px-6 py-4">
+    <div className="mx-4 mb-4 overflow-hidden rounded-2xl border border-orbit-border">
+      <div className="border-t-[3px] border-orbit-yield bg-orbit-card px-5 py-4">
         <p className="mb-1 text-[11px] font-medium text-orbit-yield">IDLE FUNDS DETECTED</p>
         <p className="text-2xl font-bold text-orbit-text">
           {formatSGD(account.balance)} idle in {account.name}
@@ -48,16 +40,18 @@ export default async function YieldPage() {
         <p className="mt-1 text-[13px] text-orbit-muted">This money could be earning interest</p>
       </div>
 
-      <div className="mx-4 mt-3 rounded-2xl border border-orbit-border bg-orbit-card2 p-4">
+      <div className="border-t border-orbit-border bg-orbit-card2 p-4">
         <span className="mb-2 inline-block rounded-full bg-orbit-yield/15 px-2.5 py-0.5 text-[11px] font-medium text-orbit-yield">
-          RECOMMENDED
+          RECOMMENDED · {riskComfort.toUpperCase()}
         </span>
-        <p className="text-xl font-bold text-orbit-text">{FD_TERM_DAYS}-Day Fixed Deposit</p>
-        <p className="my-1 text-[28px] font-bold text-orbit-yield">{(BETTER_FD_RATE * 100).toFixed(1)}% p.a.</p>
-        <p className="text-sm text-orbit-text">Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible</p>
+        <p className="text-xl font-bold text-orbit-text">{tier.product}</p>
+        <p className="my-1 text-[28px] font-bold text-orbit-yield">{(tier.rate * 100).toFixed(1)}% p.a.</p>
+        <p className="text-sm text-orbit-text">
+          Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible
+        </p>
       </div>
 
-      <div className="mx-4 mt-3 rounded-xl bg-orbit-card p-4">
+      <div className="border-t border-orbit-border bg-orbit-card p-4">
         <p className="mb-2.5 text-sm text-orbit-text">Your safety buffer is protected</p>
         <div className="relative mb-1.5 h-2 rounded-full bg-orbit-border">
           <div className="h-full rounded-full bg-orbit-yield" style={{ width: `${accessiblePct}%` }} />
@@ -68,26 +62,29 @@ export default async function YieldPage() {
         </div>
       </div>
 
-      <div className="mx-4 mt-3 flex-1 rounded-xl bg-orbit-card p-4">
-        <p className="mb-2 text-xs text-orbit-muted">Other options (indicative rates)</p>
-        <div className="flex items-center justify-between border-b border-orbit-border py-2.5">
-          <span className="text-sm text-orbit-text">{FD_TERM_DAYS}-Day Fixed Deposit</span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-orbit-yield">{(BETTER_FD_RATE * 100).toFixed(1)}% p.a.</span>
-            <StatusChip tone="green">Best</StatusChip>
+      <div className="border-t border-orbit-border bg-orbit-card p-4">
+        <p className="mb-2 text-xs text-orbit-muted">Other tiers (indicative rates)</p>
+        {TIER_ORDER.map((tierName) => (
+          <div
+            key={tierName}
+            className="flex items-center justify-between border-b border-orbit-border py-2.5 last:border-none"
+          >
+            <span className={`text-sm ${tierName === riskComfort ? "text-orbit-text" : "text-orbit-muted"}`}>
+              {YIELD_TIERS[tierName].product}
+            </span>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-sm font-bold ${tierName === riskComfort ? "text-orbit-yield" : "text-orbit-muted"}`}
+              >
+                {(YIELD_TIERS[tierName].rate * 100).toFixed(1)}% p.a.
+              </span>
+              {tierName === riskComfort && <StatusChip tone="green">Your tier</StatusChip>}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-between border-b border-orbit-border py-2.5">
-          <span className="text-sm text-orbit-muted">Savings Bond</span>
-          <span className="text-sm font-bold text-orbit-muted">2.8% p.a.</span>
-        </div>
-        <div className="flex items-center justify-between py-2.5">
-          <span className="text-sm text-orbit-muted">Money Market Fund</span>
-          <span className="text-sm font-bold text-orbit-muted">2.1% p.a.</span>
-        </div>
+        ))}
       </div>
 
-      <div className="mt-4 border-t border-orbit-border bg-orbit-surface px-6 py-4">
+      <div className="border-t border-orbit-border bg-orbit-surface p-4">
         {recommendation.status === "pending" ? (
           <ActionButtons actionId={recommendation.id} approveLabel={`Approve Transfer of ${formatSGD(transferAmount)}`} />
         ) : (
@@ -97,10 +94,55 @@ export default async function YieldPage() {
             </StatusChip>
           </div>
         )}
-        <p className="mt-2.5 text-center text-[11px] text-orbit-muted">
-          Powered by Orbit Yield · Coordinated with Orbit Pulse
-        </p>
+        <ReasoningDisclosure reasoning={recommendation.reasoning} />
       </div>
+    </div>
+  );
+}
+
+export default async function YieldPage() {
+  const user = await requireUser();
+  const [graph, actions, settings] = await Promise.all([
+    loadLifeGraph(user.id),
+    syncAgentActions(user.id),
+    getGuardrails(user.id),
+  ]);
+  const recommendations = actions.filter((a) => a.agent === "yield" && a.actionType === "recommendation");
+
+  if (recommendations.length === 0) {
+    return (
+      <AppShell withBottomNav={false}>
+        <PageHeader title="Money Optimisation" backHref="/dashboard" agent="yield" />
+        <div className="flex flex-1 items-center justify-center px-6 text-center text-sm text-orbit-muted">
+          No idle money detected right now — anything above {formatSGD(MIN_BUFFER)} across your accounts will show up here.
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell withBottomNav={false}>
+      <PageHeader title="Money Optimisation" backHref="/dashboard" agent="yield" />
+
+      <div className="flex-1 overflow-y-auto py-4">
+        {recommendations.map((recommendation) => {
+          const account = graph.accounts.find((a) => `yield_${a.id}` === recommendation.id);
+          if (!account) return null;
+          return (
+            <RecommendationCard
+              key={recommendation.id}
+              account={account}
+              recommendation={recommendation}
+              minBalance={settings.minBalance}
+              riskComfort={settings.riskComfort}
+            />
+          );
+        })}
+      </div>
+
+      <p className="px-6 pb-4 text-center text-[11px] text-orbit-muted">
+        Powered by Orbit Yield · Coordinated with Orbit Pulse
+      </p>
     </AppShell>
   );
 }

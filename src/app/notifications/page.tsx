@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusChip } from "@/components/StatusChip";
+import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
 import { formatRelativeTime } from "@/lib/format";
 import type { AgentName } from "@/lib/types";
 
@@ -48,6 +49,7 @@ export default async function NotificationsPage() {
                     {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}
                   </StatusChip>
                 )}
+                <ReasoningDisclosure reasoning={a.reasoning} />
               </li>
             ))}
           </ul>

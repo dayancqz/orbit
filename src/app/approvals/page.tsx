@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { BottomNav } from "@/components/BottomNav";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
+import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
 import type { AgentName } from "@/lib/types";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
@@ -77,6 +78,7 @@ export default async function ApprovalsPage({
                 {action.status === "approved" ? "Approved" : "Dismissed"}
               </StatusChip>
             )}
+            <ReasoningDisclosure reasoning={action.reasoning} />
           </div>
         ))}
       </div>

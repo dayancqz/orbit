@@ -6,8 +6,9 @@ import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
+import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
 import { PulsePlanner } from "@/components/PulsePlanner";
-import { formatDate, daysUntil } from "@/lib/format";
+import { formatDate, formatSGD, daysUntil } from "@/lib/format";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
 // must never be served from Next's static prerender cache.
@@ -93,12 +94,13 @@ export default async function PulsePage() {
 
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3">
         <PulsePlanner
-          initialEvents={graph.calendarEvents.map((event) => ({
+          events={graph.calendarEvents.map((event) => ({
             id: event.id,
             title: event.title,
             startsAt: event.startsAt,
             endsAt: event.endsAt,
             location: event.location,
+            source: event.source,
           }))}
         />
         <BriefingCard
@@ -108,8 +110,11 @@ export default async function PulsePage() {
         />
         <BriefingCard
           label="TRAVEL WALLET"
-          main="Recommended: S$250"
-          sub="Based on an estimated daily spend for the length of your trip."
+          main={`Recommended: ${formatSGD(briefing?.amount ?? 250)}`}
+          sub={
+            briefing?.reasoning ??
+            "Based on an estimated daily spend for the length of your trip."
+          }
         />
         <BriefingCard
           label="TRAVEL INSURANCE"
@@ -127,7 +132,10 @@ export default async function PulsePage() {
       <div className="border-t border-orbit-border bg-orbit-surface px-6 py-4">
         {briefing ? (
           briefing.status === "pending" ? (
-            <ActionButtons actionId={briefing.id} approveLabel="Approve & Set Aside S$250" />
+            <ActionButtons
+              actionId={briefing.id}
+              approveLabel={`Approve & Set Aside ${formatSGD(briefing.amount ?? 250)}`}
+            />
           ) : (
             <div className="flex justify-center">
               <StatusChip tone={briefing.status === "approved" ? "green" : "muted"}>
@@ -143,6 +151,7 @@ export default async function PulsePage() {
             </p>
           )
         )}
+        {briefing && <ReasoningDisclosure reasoning={briefing.reasoning} />}
         <p className="mt-2.5 text-center text-[11px] text-orbit-muted">
           Powered by Orbit Pulse · Approved actions are reversible
         </p>

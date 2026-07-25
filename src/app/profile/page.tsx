@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { TabHeader } from "@/components/TabHeader";
 import { LogoutButton } from "@/components/LogoutButton";
 import { AppearancePicker } from "@/components/AppearancePicker";
+import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { parseAppearance } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +44,7 @@ export default async function ProfilePage() {
 
       <div className="flex flex-col gap-3 px-4">
         <AppearancePicker initialThemeMode={appearance.themeMode} initialAccentColor={appearance.accentColor} />
+        <PushNotificationToggle />
         <ProfileLink href="/settings" label="Guardrails" sub="Thresholds each agent must stay within" />
         <ProfileLink href="/approvals" label="Approval Hub" sub="Review pending and past agent decisions" />
         <ProfileLink href="/notifications" label="Notifications" sub="Everything Orbit has done or flagged" />
