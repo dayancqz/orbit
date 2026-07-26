@@ -121,6 +121,29 @@ export async function createAccount(
   });
 }
 
+export async function createSubscription(
+  userId: string,
+  data: { merchant: string; monthlyAmount: number }
+) {
+  return prisma.subscription.create({
+    data: { userId, merchant: data.merchant, monthlyAmount: data.monthlyAmount },
+  });
+}
+
+export async function updateSubscription(
+  userId: string,
+  subscriptionId: string,
+  data: { merchant: string; monthlyAmount: number }
+) {
+  const existing = await prisma.subscription.findUniqueOrThrow({ where: { id: subscriptionId } });
+  if (existing.userId !== userId) throw new Error("No such subscription for this user");
+
+  return prisma.subscription.update({
+    where: { id: subscriptionId },
+    data: { merchant: data.merchant, monthlyAmount: data.monthlyAmount },
+  });
+}
+
 // One row per user, created with defaults the first time it's read — so
 // there's never a "no settings yet" state for the rest of the app to
 // special-case.
@@ -300,6 +323,32 @@ function toPersistedAction(row: {
   };
 }
 
+// Cursor-paginated read of a user's already-synced actions — no rule
+// engines run here, just a DB read, so paging through history on the
+// Notifications screen never re-triggers agent computation. Callers that
+// need the *full*, up-to-date set (dashboard, agent pages matching a
+// specific action id) should keep using syncAgentActions instead.
+export async function getAgentActionsPage(
+  userId: string,
+  opts: { cursor?: string; limit?: number } = {}
+): Promise<{ actions: PersistedAgentAction[]; nextCursor: string | null }> {
+  const limit = opts.limit ?? 20;
+  const rows = await prisma.agentAction.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: limit + 1,
+    ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
+  });
+
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+
+  return {
+    actions: page.map(toPersistedAction),
+    nextCursor: hasMore ? page[page.length - 1].id : null,
+  };
+}
+
 // Sends a push notification (if the user has any subscriptions) for a
 // batch of genuinely-new actions, then marks them notified so a later
 // sync never re-sends for the same row.
@@ -419,6 +468,18 @@ async function syncPostTripSummaries(userId: string, graph: CustomerLifeGraph) {
 // raised above the idle amount), any *pending* row for it is removed —
 // it was never acted on, so there's nothing to preserve. Anything already
 // approved or dismissed is left alone; that's real history.
+// Runs one agent's rule function in isolation — if it throws (bad data, a
+// bug in a new rule, whatever), the other agents still get to compute and
+// the page still renders instead of 500ing entirely.
+function safeCompute<T>(agent: string, compute: () => T[]): T[] {
+  try {
+    return compute();
+  } catch (err) {
+    console.error(`[${agent}] rule evaluation failed`, err);
+    return [];
+  }
+}
+
 export async function syncAgentActions(userId: string): Promise<PersistedAgentAction[]> {
   const settings = await getGuardrails(userId);
   if (settings.connectCalendar) {
@@ -429,19 +490,31 @@ export async function syncAgentActions(userId: string): Promise<PersistedAgentAc
   }
 
   const graph = await loadLifeGraph(userId);
-  await syncPostTripSummaries(userId, graph);
+  await syncPostTripSummaries(userId, graph).catch((err) => {
+    console.error("[pulse] post-trip summary failed", err);
+  });
 
-  const trip = settings.connectCalendar ? findTripEvent(graph) : undefined;
+  const trip = settings.connectCalendar
+    ? safeCompute("pulse", () => {
+        const t = findTripEvent(graph);
+        return t ? [t] : [];
+      })[0]
+    : undefined;
   const learnedRatio = await getLearnedRatio(userId);
-  const briefing = trip ? buildPreTripBriefing(graph, 250, settings.preTripDays, learnedRatio) : null;
+  const briefing = trip
+    ? safeCompute("pulse", () => {
+        const b = buildPreTripBriefing(graph, 250, settings.preTripDays, learnedRatio);
+        return b ? [b] : [];
+      })[0] ?? null
+    : null;
 
   const computed = [
-    ...(settings.connectCalendar ? detectLifeEvents(graph) : []),
+    ...(settings.connectCalendar ? safeCompute("pulse", () => detectLifeEvents(graph)) : []),
     ...(briefing ? [briefing] : []),
-    ...(settings.detectLifeEvents ? detectTripFromSpending(graph, trip) : []),
-    ...findIdleMoney(graph, settings.minBalance, settings.riskComfort),
-    ...flagUnusedSubscriptions(graph, settings.flagAfterDays, settings.allowNegotiation),
-    ...(trip && settings.autoTripMode ? [activateTripMode(trip)] : []),
+    ...(settings.detectLifeEvents ? safeCompute("pulse", () => detectTripFromSpending(graph, trip)) : []),
+    ...safeCompute("yield", () => findIdleMoney(graph, settings.minBalance, settings.riskComfort)),
+    ...safeCompute("shield", () => flagUnusedSubscriptions(graph, settings.flagAfterDays, settings.allowNegotiation)),
+    ...(trip && settings.autoTripMode ? safeCompute("shield", () => [activateTripMode(trip)]) : []),
   ];
 
   const existingRows = await prisma.agentAction.findMany({

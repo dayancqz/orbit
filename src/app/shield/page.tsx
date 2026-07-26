@@ -4,9 +4,8 @@ import { findTripEvent } from "@/lib/agents/pulse";
 import { isUnused } from "@/lib/agents/shield";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
-import { ActionButtons } from "@/components/ActionButtons";
-import { StatusChip } from "@/components/StatusChip";
-import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
+import { SubscriptionRow } from "@/components/SubscriptionRow";
+import { AddSubscriptionForm } from "@/components/AddSubscriptionForm";
 import { formatSGD, daysSince } from "@/lib/format";
 import type { PersistedAgentAction } from "@/lib/types";
 
@@ -90,42 +89,15 @@ export default async function ShieldPage() {
         <p className="border-b border-orbit-border px-4 py-3.5 text-[15px] font-semibold text-orbit-text">
           Your Subscriptions
         </p>
-        {graph.subscriptions.map((sub) => {
-          const usage = usageLabel(sub, settings.flagAfterDays);
-          const action = actionFor(sub.id);
-          const cancelled = sub.status === "cancelled";
-
-          return (
-            <div key={sub.id} className="border-b border-orbit-border px-4 py-2.5 last:border-none">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orbit-border text-xs font-bold text-orbit-text">
-                  {sub.merchant.slice(0, 2).toUpperCase()}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-orbit-text">{sub.merchant}</p>
-                  <p className="text-xs text-orbit-muted">{formatSGD(sub.monthlyAmount)}/mo</p>
-                  {!cancelled && (
-                    <span className="mt-1 inline-block">
-                      <StatusChip tone={usage.tone}>{usage.text}</StatusChip>
-                    </span>
-                  )}
-                </div>
-                <div className="shrink-0">
-                  {cancelled ? (
-                    <StatusChip tone="muted">Cancelled</StatusChip>
-                  ) : action && action.status === "pending" ? (
-                    <ActionButtons actionId={action.id} approveLabel="Cancel" dismissLabel="Keep" compact />
-                  ) : action && action.status === "dismissed" ? (
-                    <StatusChip tone="muted">Kept</StatusChip>
-                  ) : (
-                    <span className="text-xs font-medium text-orbit-yield">Active</span>
-                  )}
-                </div>
-              </div>
-              {action && <ReasoningDisclosure reasoning={action.reasoning} />}
-            </div>
-          );
-        })}
+        {graph.subscriptions.map((sub) => (
+          <SubscriptionRow
+            key={sub.id}
+            sub={sub}
+            usage={usageLabel(sub, settings.flagAfterDays)}
+            action={actionFor(sub.id)}
+          />
+        ))}
+        <AddSubscriptionForm />
       </div>
 
       <div className="h-4" />

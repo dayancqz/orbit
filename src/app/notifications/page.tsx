@@ -2,58 +2,29 @@ import { syncAgentActions } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
-import { StatusChip } from "@/components/StatusChip";
-import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
-import { formatRelativeTime } from "@/lib/format";
-import type { AgentName } from "@/lib/types";
+import { NotificationsList } from "@/components/NotificationsList";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
 // must never be served from Next's static prerender cache.
 export const dynamic = "force-dynamic";
 
-const AGENT_LABEL: Record<AgentName, string> = {
-  pulse: "Orbit Pulse",
-  yield: "Orbit Yield",
-  shield: "Orbit Shield",
-};
-const AGENT_DOT: Record<AgentName, string> = {
-  pulse: "bg-orbit-pulse",
-  yield: "bg-orbit-yield",
-  shield: "bg-orbit-shield",
-};
+const PAGE_SIZE = 20;
 
 export default async function NotificationsPage() {
   const user = await requireUser();
+  // syncAgentActions both runs the agents and returns every action, newest
+  // first — the full set is needed once to sync, but only the first page
+  // is rendered; NotificationsList fetches further pages from
+  // /api/actions (a plain read, no re-sync) as the user scrolls.
   const actions = await syncAgentActions(user.id);
+  const initialActions = actions.slice(0, PAGE_SIZE);
+  const initialCursor = actions.length > PAGE_SIZE ? initialActions[initialActions.length - 1].id : null;
 
   return (
     <AppShell withBottomNav={false}>
       <PageHeader title="Notifications" backHref="/dashboard" />
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        {actions.length === 0 ? (
-          <p className="py-10 text-center text-sm text-orbit-muted">Nothing yet.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {actions.map((a) => (
-              <li key={a.id} className="rounded-2xl border border-orbit-border bg-orbit-card p-3.5">
-                <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-orbit-muted">
-                    <span className={`h-2 w-2 rounded-full ${AGENT_DOT[a.agent]}`} />
-                    {AGENT_LABEL[a.agent]}
-                  </span>
-                  <span className="shrink-0 text-[11px] text-orbit-muted">{formatRelativeTime(a.timestamp)}</span>
-                </div>
-                <p className="mb-2 text-sm text-orbit-text">{a.description}</p>
-                {a.requiresApproval && (
-                  <StatusChip tone={a.status === "approved" ? "green" : a.status === "dismissed" ? "muted" : "amber"}>
-                    {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}
-                  </StatusChip>
-                )}
-                <ReasoningDisclosure reasoning={a.reasoning} />
-              </li>
-            ))}
-          </ul>
-        )}
+        <NotificationsList initialActions={initialActions} initialCursor={initialCursor} />
       </div>
     </AppShell>
   );
