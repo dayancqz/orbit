@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
 import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
+import { PulseMotif } from "@/components/PulseMotif";
 import { PulsePlanner } from "@/components/PulsePlanner";
 import { formatDate, formatSGD, daysUntil } from "@/lib/format";
 
@@ -76,8 +77,9 @@ export default async function PulsePage() {
     <AppShell withBottomNav={false}>
       <PageHeader title="Trip Briefing" backHref="/dashboard" agent="pulse" />
 
-      <div className="bg-gradient-to-b from-orbit-card2 to-orbit-surface px-6 py-4">
-        <div className="flex items-start justify-between gap-3">
+      <div className="relative overflow-hidden bg-gradient-to-b from-orbit-card2 to-orbit-surface px-6 py-4">
+        <PulseMotif className="right-[-50px] top-[-60px] h-[220px] w-[220px]" />
+        <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-[28px] font-bold text-orbit-text">{trip.title}</h2>
             <p className="mt-1 text-sm text-orbit-muted">
@@ -151,7 +153,7 @@ export default async function PulsePage() {
             </p>
           )
         )}
-        {briefing && <ReasoningDisclosure reasoning={briefing.reasoning} />}
+        {briefing && <ReasoningDisclosure reasoning={briefing.reasoning} agent="pulse" />}
         <p className="mt-2.5 text-center text-[11px] text-orbit-muted">
           Powered by Orbit Pulse · Approved actions are reversible
         </p>

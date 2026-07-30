@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { SubscriptionRow } from "@/components/SubscriptionRow";
 import { AddSubscriptionForm } from "@/components/AddSubscriptionForm";
+import { ShieldMotif } from "@/components/ShieldMotif";
 import { formatSGD, daysSince } from "@/lib/format";
 import type { PersistedAgentAction } from "@/lib/types";
 
@@ -57,9 +58,10 @@ export default async function ShieldPage() {
         </div>
       )}
 
-      <div className="mx-4 mt-3 rounded-2xl border-l-4 border-orbit-shield bg-orbit-card p-4">
-        <p className="mb-2 text-[11px] font-medium text-orbit-shield">SUBSCRIPTIONS</p>
-        <div className="flex">
+      <div className="relative mx-4 mt-3 overflow-hidden rounded-2xl border-l-4 border-orbit-shield bg-orbit-card p-4">
+        <ShieldMotif className="right-0 top-0 h-full w-[150px]" />
+        <p className="relative mb-2 text-[11px] font-medium text-orbit-shield">SUBSCRIPTIONS</p>
+        <div className="relative flex">
           <div className="flex-1 border-r border-orbit-border pr-2">
             <p className={`text-[22px] font-bold ${allocationPct > 100 ? "text-orbit-shield" : "text-orbit-text"}`}>
               {formatSGD(monthlyTotal)}

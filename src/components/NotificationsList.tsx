@@ -69,7 +69,7 @@ export function NotificationsList({
                 {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}
               </StatusChip>
             )}
-            <ReasoningDisclosure reasoning={a.reasoning} />
+            <ReasoningDisclosure reasoning={a.reasoning} agent={a.agent} />
           </li>
         ))}
       </ul>

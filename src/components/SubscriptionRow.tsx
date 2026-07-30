@@ -129,7 +129,7 @@ export function SubscriptionRow({
           )}
         </div>
       </div>
-      {action && <ReasoningDisclosure reasoning={action.reasoning} />}
+      {action && <ReasoningDisclosure reasoning={action.reasoning} agent="shield" />}
     </div>
   );
 }

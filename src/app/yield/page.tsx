@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
 import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
+import { YieldMotif } from "@/components/YieldMotif";
 import { formatSGD } from "@/lib/format";
 import type { GuardrailSettings, LifeGraphAccount, PersistedAgentAction } from "@/lib/types";
 
@@ -32,12 +33,15 @@ function RecommendationCard({
 
   return (
     <div className="mx-4 mb-4 overflow-hidden rounded-2xl border border-orbit-border">
-      <div className="border-t-[3px] border-orbit-yield bg-orbit-card px-5 py-4">
-        <p className="mb-1 text-[11px] font-medium text-orbit-yield">IDLE FUNDS DETECTED</p>
-        <p className="text-2xl font-bold text-orbit-text">
-          {formatSGD(account.balance)} idle in {account.name}
-        </p>
-        <p className="mt-1 text-[13px] text-orbit-muted">This money could be earning interest</p>
+      <div className="relative overflow-hidden border-t-[3px] border-orbit-yield bg-orbit-card px-5 py-4">
+        <YieldMotif className="bottom-[-10px] right-[-10px] h-[110px] w-[180px]" />
+        <div className="relative">
+          <p className="mb-1 text-[11px] font-medium text-orbit-yield">IDLE FUNDS DETECTED</p>
+          <p className="text-2xl font-bold text-orbit-text">
+            {formatSGD(account.balance)} idle in {account.name}
+          </p>
+          <p className="mt-1 text-[13px] text-orbit-muted">This money could be earning interest</p>
+        </div>
       </div>
 
       <div className="border-t border-orbit-border bg-orbit-card2 p-4">
@@ -94,7 +98,7 @@ function RecommendationCard({
             </StatusChip>
           </div>
         )}
-        <ReasoningDisclosure reasoning={recommendation.reasoning} />
+        <ReasoningDisclosure reasoning={recommendation.reasoning} agent="yield" />
       </div>
     </div>
   );

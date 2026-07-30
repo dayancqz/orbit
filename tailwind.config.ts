@@ -50,6 +50,14 @@ const config: Config = {
           "0%, 100%": { transform: "translateY(0)", opacity: "0.4" },
           "50%": { transform: "translateY(-14px)", opacity: "1" },
         },
+        "trace-in": {
+          "0%": { opacity: "0", transform: "translateY(-4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "cascade-in": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "globe-spin": "globe-spin 8s linear infinite",
@@ -59,6 +67,8 @@ const config: Config = {
         "ring-pulse-3": "ring-pulse 3s ease-in-out infinite 1.6s",
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
         "float-particle": "float-particle 4s ease-in-out infinite",
+        "trace-in": "trace-in 0.25s ease-out",
+        "cascade-in": "cascade-in 0.4s ease-out both",
       },
     },
   },

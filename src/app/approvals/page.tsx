@@ -78,7 +78,7 @@ export default async function ApprovalsPage({
                 {action.status === "approved" ? "Approved" : "Dismissed"}
               </StatusChip>
             )}
-            <ReasoningDisclosure reasoning={action.reasoning} />
+            <ReasoningDisclosure reasoning={action.reasoning} agent={action.agent} />
           </div>
         ))}
       </div>
