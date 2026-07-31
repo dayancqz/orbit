@@ -10,7 +10,32 @@ const PARTICLES = [
   { left: "68%", top: "72%", delay: "0.9s" },
 ];
 
-export function GlobeAnimation() {
+// Compact variant for use inline next to the wordmark (e.g. dashboard header):
+// same spinning-globe SVG, without the fixed-pixel glow/particle ambiance
+// that only reads correctly at full splash-screen size.
+export function GlobeAnimation({ size }: { size: number }) {
+  return (
+    <div className="relative shrink-0" style={{ height: size, width: size }}>
+      <svg viewBox="0 0 260 260" fill="none" className="h-full w-full">
+        <circle cx="130" cy="130" r="88" fill="rgba(0,194,199,0.06)" stroke="#00C2C7" strokeWidth="1.5" opacity="0.6" />
+        <ellipse cx="130" cy="130" rx="88" ry="22" stroke="#00C2C7" strokeWidth="0.8" opacity="0.25" />
+        <ellipse cx="130" cy="130" rx="88" ry="44" stroke="#00C2C7" strokeWidth="0.8" opacity="0.2" />
+        <ellipse cx="130" cy="130" rx="88" ry="66" stroke="#00C2C7" strokeWidth="0.8" opacity="0.15" />
+        <g className="origin-center animate-globe-spin">
+          <ellipse cx="130" cy="130" rx="30" ry="88" stroke="#00C2C7" strokeWidth="0.9" opacity="0.3" />
+          <ellipse cx="130" cy="130" rx="60" ry="88" stroke="#00C2C7" strokeWidth="0.9" opacity="0.2" />
+        </g>
+        <g className="origin-center animate-globe-spin-reverse">
+          <ellipse cx="130" cy="130" rx="45" ry="88" stroke="#00C896" strokeWidth="0.8" opacity="0.2" transform="rotate(60,130,130)" />
+        </g>
+        <circle cx="130" cy="130" r="10" fill="rgba(0,194,199,0.3)" />
+        <circle cx="130" cy="130" r="5" fill="#00C2C7" opacity="0.8" />
+      </svg>
+    </div>
+  );
+}
+
+export function GlobeAnimationFull() {
   return (
     <div className="relative flex flex-1 items-center justify-center">
       <div className="absolute h-[300px] w-[300px] animate-glow-pulse rounded-full bg-[radial-gradient(circle,rgba(0,194,199,0.18)_0%,transparent_70%)]" />

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { StatusChip } from "./StatusChip";
 import { ReasoningDisclosure } from "./ReasoningDisclosure";
-import { formatRelativeTime } from "@/lib/format";
+import { formatRelativeTime, isRecent } from "@/lib/format";
 import type { AgentName, PersistedAgentAction } from "@/lib/types";
 
 const AGENT_LABEL: Record<AgentName, string> = {
@@ -54,12 +54,25 @@ export function NotificationsList({
   return (
     <>
       <ul className="flex flex-col gap-2">
-        {actions.map((a) => (
-          <li key={a.id} className="rounded-2xl border border-orbit-border bg-orbit-card p-3.5">
+        {actions.map((a, index) => {
+          const recent = isRecent(a.timestamp);
+          return (
+          <li
+            key={a.id}
+            style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+            className={`animate-cascade-in rounded-2xl border bg-orbit-card p-3.5 ${
+              recent ? "border-orbit-accent/40" : "border-orbit-border"
+            }`}
+          >
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-[11px] font-medium text-orbit-muted">
-                <span className={`h-2 w-2 rounded-full ${AGENT_DOT[a.agent]}`} />
+                <span className={`h-2 w-2 rounded-full ${AGENT_DOT[a.agent]} ${recent ? "animate-pulse" : ""}`} />
                 {AGENT_LABEL[a.agent]}
+                {recent && (
+                  <span className="rounded-full bg-orbit-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orbit-accent">
+                    New
+                  </span>
+                )}
               </span>
               <span className="shrink-0 text-[11px] text-orbit-muted">{formatRelativeTime(a.timestamp)}</span>
             </div>
@@ -71,7 +84,8 @@ export function NotificationsList({
             )}
             <ReasoningDisclosure reasoning={a.reasoning} agent={a.agent} />
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       {error && <p className="mt-3 text-center text-xs text-orbit-shield">{error}</p>}

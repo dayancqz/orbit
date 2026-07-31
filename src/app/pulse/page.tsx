@@ -94,6 +94,17 @@ export default async function PulsePage() {
         </div>
       </div>
 
+      {briefing?.amount != null && (
+        <div className="relative border-b border-orbit-border bg-orbit-surface px-6 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-orbit-pulse">
+            Recommended travel wallet
+          </p>
+          <p className="text-[44px] font-bold leading-none tracking-tight text-orbit-text">
+            {formatSGD(briefing.amount)}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3">
         <PulsePlanner
           events={graph.calendarEvents.map((event) => ({
@@ -109,14 +120,6 @@ export default async function PulsePage() {
           label="FX RATE ALERT"
           main="Daily monitoring active"
           sub="Orbit Pulse checks the exchange rate daily and will flag the best window to convert before you travel."
-        />
-        <BriefingCard
-          label="TRAVEL WALLET"
-          main={`Recommended: ${formatSGD(briefing?.amount ?? 250)}`}
-          sub={
-            briefing?.reasoning ??
-            "Based on an estimated daily spend for the length of your trip."
-          }
         />
         <BriefingCard
           label="TRAVEL INSURANCE"

@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { ActionButtons } from "@/components/ActionButtons";
 import { StatusChip } from "@/components/StatusChip";
 import { ReasoningDisclosure } from "@/components/ReasoningDisclosure";
+import { isRecent } from "@/lib/format";
 import type { AgentName } from "@/lib/types";
 
 // Reads live DB state (agent actions change via approve/dismiss), so this
@@ -60,15 +61,23 @@ export default async function ApprovalsPage({
             {showHistory ? "No decisions yet." : "Nothing pending — you're all caught up."}
           </p>
         )}
-        {list.map((action) => (
+        {list.map((action, index) => {
+          const recent = isRecent(action.timestamp);
+          return (
           <div
             key={action.id}
-            className="relative overflow-hidden rounded-2xl border border-orbit-border bg-orbit-card py-3.5 pl-[18px] pr-3.5"
+            style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+            className="relative animate-cascade-in overflow-hidden rounded-2xl border border-orbit-border bg-orbit-card py-3.5 pl-[18px] pr-3.5"
           >
             <span className={`absolute inset-y-0 left-0 w-1 ${AGENT_DOT[action.agent]}`} />
             <div className={`mb-1.5 flex items-center gap-1.5 text-[11px] font-medium ${AGENT_TEXT[action.agent]}`}>
-              <span className={`h-2 w-2 rounded-full ${AGENT_DOT[action.agent]}`} />
+              <span className={`h-2 w-2 rounded-full ${AGENT_DOT[action.agent]} ${recent ? "animate-pulse" : ""}`} />
               {AGENT_LABEL[action.agent]}
+              {recent && (
+                <span className="rounded-full bg-orbit-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orbit-accent">
+                  New
+                </span>
+              )}
             </div>
             <p className="mb-2.5 text-[15px] font-semibold leading-snug text-orbit-text">{action.description}</p>
             {action.status === "pending" ? (
@@ -80,7 +89,8 @@ export default async function ApprovalsPage({
             )}
             <ReasoningDisclosure reasoning={action.reasoning} agent={action.agent} />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="px-6 pb-4 pt-2 text-center">

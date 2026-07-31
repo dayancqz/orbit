@@ -12,6 +12,13 @@ export function daysSince(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 }
 
+// Used to give freshly-created agent actions a subtle "just arrived"
+// treatment (a soft pulse on the timeline dot) — a visual echo of "agents
+// are proactively working for you," not just copy that claims it.
+export function isRecent(iso: string, withinMinutes = 10): boolean {
+  return Date.now() - new Date(iso).getTime() < withinMinutes * 60_000;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-SG", {
     day: "numeric",

@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 export const dynamic = "force-dynamic";
 import { AgentCard } from "@/components/AgentCard";
 import { Timeline } from "@/components/Timeline";
+import { GlobeAnimation } from "@/components/GlobeAnimation";
 import Link from "next/link";
 import type { PersistedAgentAction, AgentName } from "@/lib/types";
 
@@ -42,16 +43,17 @@ function summaryFor(actions: PersistedAgentAction[], agent: AgentName, connectCa
 export default async function DashboardPage() {
   const user = await requireUser();
   const [actions, settings] = await Promise.all([syncAgentActions(user.id), getGuardrails(user.id)]);
-  const pendingAgentCount = new Set(
+  const urgentAgents = new Set(
     actions.filter((a) => a.status === "pending" && a.requiresApproval).map((a) => a.agent)
-  ).size;
+  );
+  const pendingAgentCount = urgentAgents.size;
 
   return (
     <AppShell>
       <header className="flex h-[72px] shrink-0 items-center justify-between bg-orbit-surface px-6">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <span className="text-lg font-bold text-orbit-text">Orbit</span>
-          <span className="ml-1 h-4 w-4 rounded-full border-2 border-orbit-accent" />
+          <GlobeAnimation size={34} />
         </div>
         <div className="flex items-center gap-2.5">
           <Link
@@ -98,18 +100,21 @@ export default async function DashboardPage() {
           title={summaryFor(actions, "pulse", settings.connectCalendar)}
           subtitle="Life Planner"
           href="/pulse"
+          urgent={urgentAgents.has("pulse")}
         />
         <AgentCard
           agent="yield"
           title={summaryFor(actions, "yield", settings.connectCalendar)}
           subtitle="Wealth Optimiser"
           href="/yield"
+          urgent={urgentAgents.has("yield")}
         />
         <AgentCard
           agent="shield"
           title={summaryFor(actions, "shield", settings.connectCalendar)}
           subtitle="Spend Guardian"
           href="/shield"
+          urgent={urgentAgents.has("shield")}
         />
       </div>
 

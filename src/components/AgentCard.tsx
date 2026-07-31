@@ -6,7 +6,7 @@ import { ShieldMotif } from "./ShieldMotif";
 
 const AGENT_META: Record<
   AgentName,
-  { label: string; color: string; bg: string; icon: React.ReactNode; motif: React.ReactNode }
+  { label: string; color: string; bg: string; icon: React.ReactNode; motif: React.ReactNode; glow: string }
 > = {
   pulse: {
     label: "ORBIT PULSE",
@@ -18,6 +18,7 @@ const AGENT_META: Record<
       </svg>
     ),
     motif: <PulseMotif className="right-[-20px] top-1/2 h-[85px] w-[85px] -translate-y-1/2" />,
+    glow: "border-[#22d3ee]/40 shadow-[0_0_0_1px_rgba(34,211,238,0.15),0_0_18px_-4px_rgba(34,211,238,0.55)]",
   },
   yield: {
     label: "ORBIT YIELD",
@@ -30,6 +31,7 @@ const AGENT_META: Record<
       </svg>
     ),
     motif: <YieldMotif className="bottom-[-15px] right-[-10px] h-[60px] w-[100px]" />,
+    glow: "border-[#2dd4bf]/40 shadow-[0_0_0_1px_rgba(45,212,191,0.15),0_0_18px_-4px_rgba(45,212,191,0.55)]",
   },
   shield: {
     label: "ORBIT SHIELD",
@@ -41,6 +43,7 @@ const AGENT_META: Record<
       </svg>
     ),
     motif: <ShieldMotif className="right-0 top-0 h-full w-[90px]" />,
+    glow: "border-[#ef4444]/40 shadow-[0_0_0_1px_rgba(239,68,68,0.15),0_0_18px_-4px_rgba(239,68,68,0.55)]",
   },
 };
 
@@ -49,18 +52,22 @@ export function AgentCard({
   title,
   subtitle,
   href,
+  urgent,
 }: {
   agent: AgentName;
   title: string;
   subtitle: string;
   href: string;
+  urgent?: boolean;
 }) {
   const meta = AGENT_META[agent];
 
   return (
     <Link
       href={href}
-      className="relative flex items-center gap-3 overflow-hidden rounded-2xl border border-orbit-border bg-orbit-card py-3.5 pr-3.5"
+      className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border bg-orbit-card pr-3.5 transition-[padding,box-shadow] ${
+        urgent ? `${meta.glow} py-4` : "border-orbit-border py-3.5"
+      }`}
     >
       {meta.motif}
       <span className={`relative self-stretch w-1 shrink-0 ${meta.bg}`} />
@@ -70,7 +77,10 @@ export function AgentCard({
         {meta.icon}
       </span>
       <span className="relative min-w-0 flex-1">
-        <span className={`block text-[11px] font-semibold ${meta.color}`}>{meta.label}</span>
+        <span className={`flex items-center gap-1.5 text-[11px] font-semibold ${meta.color}`}>
+          {meta.label}
+          {urgent && <span className={`h-1.5 w-1.5 shrink-0 animate-pulse rounded-full ${meta.bg}`} />}
+        </span>
         <span className="block truncate text-sm font-semibold text-orbit-text">{title}</span>
         <span className="mt-0.5 block text-xs text-orbit-muted">{subtitle}</span>
       </span>

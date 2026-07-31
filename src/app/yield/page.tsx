@@ -48,10 +48,13 @@ function RecommendationCard({
         <span className="mb-2 inline-block rounded-full bg-orbit-yield/15 px-2.5 py-0.5 text-[11px] font-medium text-orbit-yield">
           RECOMMENDED · {riskComfort.toUpperCase()}
         </span>
-        <p className="text-xl font-bold text-orbit-text">{tier.product}</p>
-        <p className="my-1 text-[28px] font-bold text-orbit-yield">{(tier.rate * 100).toFixed(1)}% p.a.</p>
-        <p className="text-sm text-orbit-text">
-          Move {formatSGD(transferAmount)} — keeps {formatSGD(minBalance)} accessible
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-orbit-muted">Move to {tier.product}</p>
+        <p className="text-[44px] font-bold leading-none tracking-tight text-orbit-text">
+          {formatSGD(transferAmount)}
+        </p>
+        <p className="mt-1.5 text-sm text-orbit-text">
+          at <span className="font-bold text-orbit-yield">{(tier.rate * 100).toFixed(1)}% p.a.</span> — keeps{" "}
+          {formatSGD(minBalance)} accessible
         </p>
       </div>
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { GlobeAnimation } from "@/components/GlobeAnimation";
+import { GlobeAnimationFull } from "@/components/GlobeAnimation";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function SplashPage() {
         }}
       />
 
-      <GlobeAnimation />
+      <GlobeAnimationFull />
 
       <div className="relative px-8 text-center">
         <p className="text-[36px] font-bold leading-none text-orbit-text">Orbit</p>
