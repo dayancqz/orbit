@@ -61,11 +61,23 @@ function ProfileIcon({ active }: { active: boolean }) {
   );
 }
 
+function SplitIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-orbit-accent" : "text-current"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="7" cy="7" r="3" />
+      <circle cx="17" cy="7" r="3" />
+      <path d="M7 10v3a5 5 0 0 0 5 5h5" />
+      <path d="M15 15l2 3 2-3" />
+    </svg>
+  );
+}
+
 const TABS: TabConfig[] = [
   { label: "Home", href: "/dashboard", icon: (active) => <HomeIcon active={active} /> },
   { label: "Cards", href: "/cards", icon: (active) => <CardIcon active={active} /> },
   { label: "Orbit", href: "/approvals", icon: (active) => <OrbitIcon active={active} /> },
   { label: "Pay", href: "/pay", icon: (active) => <PayIcon active={active} /> },
+  { label: "Split", href: "/split", icon: (active) => <SplitIcon active={active} /> },
   { label: "Profile", href: "/profile", icon: (active) => <ProfileIcon active={active} /> },
 ];
 

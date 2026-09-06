@@ -69,6 +69,76 @@ async function main() {
     });
   }
 
+  const existingGroup = await prisma.splitGroup.findFirst({ where: { createdById: user.id, name: "Seoul Trip Friends" } });
+  if (!existingGroup) {
+    const group = await prisma.splitGroup.create({
+      data: {
+        name: "Seoul Trip Friends",
+        createdById: user.id,
+        members: {
+          create: [
+            { userId: user.id, name: user.name },
+            { name: "Ben" }, // non-Orbit friend, tracked by name only
+            { name: "Mei" }, // non-Orbit friend, tracked by name only
+          ],
+        },
+      },
+      include: { members: true },
+    });
+    const sarahMember = group.members.find((m) => m.userId === user.id)!;
+    const benMember = group.members.find((m) => m.name === "Ben")!;
+    const meiMember = group.members.find((m) => m.name === "Mei")!;
+
+    await prisma.splitExpense.create({
+      data: {
+        groupId: group.id,
+        description: "Dinner at Myeongdong",
+        amount: 90,
+        paidById: sarahMember.id,
+        splitType: "equal",
+        occurredAt: new Date(Date.now() - 6 * 86_400_000),
+        shares: {
+          create: [
+            { memberId: sarahMember.id, amount: 30 },
+            { memberId: benMember.id, amount: 30 },
+            { memberId: meiMember.id, amount: 30 },
+          ],
+        },
+      },
+    });
+
+    await prisma.splitExpense.create({
+      data: {
+        groupId: group.id,
+        description: "Taxi to airport",
+        amount: 45,
+        paidById: benMember.id,
+        splitType: "equal",
+        occurredAt: new Date(Date.now() - 5 * 86_400_000),
+        shares: {
+          create: [
+            { memberId: sarahMember.id, amount: 15 },
+            { memberId: benMember.id, amount: 15 },
+            { memberId: meiMember.id, amount: 15 },
+          ],
+        },
+      },
+    });
+
+    // Mei has already paid Sarah back for part of what she owes — leaves a
+    // partial, still-outstanding balance so the demo shows both a settled
+    // and an unsettled debt in the same group.
+    await prisma.splitSettlement.create({
+      data: {
+        groupId: group.id,
+        fromMemberId: meiMember.id,
+        toMemberId: sarahMember.id,
+        amount: 30,
+        method: "manual",
+      },
+    });
+  }
+
   console.log(`Seeded Customer Life Graph for ${user.name} (${user.id})`);
 }
 

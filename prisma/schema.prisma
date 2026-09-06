@@ -28,6 +28,8 @@ model User {
   calendarConnection CalendarConnection?
   pushSubscriptions PushSubscription[]
   tripLearning  TripLearning?
+  splitMemberships SplitMember[]
+  createdSplitGroups SplitGroup[]
   createdAt     DateTime       @default(now())
 }
 
@@ -158,4 +160,82 @@ model AgentAction {
   approvedAt  DateTime?
   notifiedAt  DateTime? // set once a push notification has been sent for this action
   createdAt   DateTime @default(now())
+}
+
+// The standalone bill-splitting feature — separate from the three agents.
+// A group of members (a mix of real Orbit users and non-Orbit "friend"
+// placeholders) log shared expenses; balances and settle-up suggestions
+// are computed on read in src/lib/split.ts, never stored.
+model SplitGroup {
+  id          String            @id @default(cuid())
+  name        String
+  createdBy   User              @relation(fields: [createdById], references: [id])
+  createdById String
+  members     SplitMember[]
+  expenses    SplitExpense[]
+  settlements SplitSettlement[]
+  invite      SplitInvite?
+  createdAt   DateTime          @default(now())
+}
+
+// A QR/link join code for a group. One active invite per group —
+// regenerating replaces it, so an old QR/link stops working immediately.
+model SplitInvite {
+  id        String     @id @default(cuid())
+  group     SplitGroup @relation(fields: [groupId], references: [id])
+  groupId   String     @unique
+  token     String     @unique
+  expiresAt DateTime
+  createdAt DateTime   @default(now())
+}
+
+model SplitMember {
+  id      String     @id @default(cuid())
+  group   SplitGroup @relation(fields: [groupId], references: [id])
+  groupId String
+  user    User?      @relation(fields: [userId], references: [id])
+  userId  String? // null = non-Orbit "friend" placeholder, tracked by name only
+  name    String // display name, snapshotted at add-time
+
+  paidExpenses        SplitExpense[]    @relation("PaidBy")
+  shares              SplitShare[]
+  settlementsSent     SplitSettlement[] @relation("SettleFrom")
+  settlementsReceived SplitSettlement[] @relation("SettleTo")
+
+  @@unique([groupId, userId])
+}
+
+model SplitExpense {
+  id          String      @id @default(cuid())
+  group       SplitGroup  @relation(fields: [groupId], references: [id])
+  groupId     String
+  description String
+  amount      Float
+  paidBy      SplitMember @relation("PaidBy", fields: [paidById], references: [id])
+  paidById    String
+  splitType   String // "equal" | "exact" | "percentage"
+  shares      SplitShare[]
+  occurredAt  DateTime    @default(now())
+}
+
+model SplitShare {
+  id        String       @id @default(cuid())
+  expense   SplitExpense @relation(fields: [expenseId], references: [id])
+  expenseId String
+  member    SplitMember  @relation(fields: [memberId], references: [id])
+  memberId  String
+  amount    Float // this member's portion of the expense
+}
+
+model SplitSettlement {
+  id           String      @id @default(cuid())
+  group        SplitGroup  @relation(fields: [groupId], references: [id])
+  groupId      String
+  fromMember   SplitMember @relation("SettleFrom", fields: [fromMemberId], references: [id])
+  fromMemberId String
+  toMember     SplitMember @relation("SettleTo", fields: [toMemberId], references: [id])
+  toMemberId   String
+  amount       Float
+  method       String // "orbit_transfer" | "manual"
+  settledAt    DateTime    @default(now())
 }
