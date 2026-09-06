@@ -124,7 +124,7 @@ export function AddAccountForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="h-11 rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
+        className="h-[52px] rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
       >
         {submitting ? "Adding…" : "Add account"}
       </button>

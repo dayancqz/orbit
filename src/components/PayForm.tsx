@@ -105,7 +105,7 @@ export function PayForm({ accounts }: { accounts: { id: string; name: string; ba
         <button
           type="submit"
           disabled={submitting || !selected}
-          className="h-12 rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
+          className="h-[52px] rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
         >
           {submitting ? "Sending…" : "Send"}
         </button>

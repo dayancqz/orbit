@@ -9,7 +9,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatusChip } from "@/components/StatusChip";
 import { SettleSuggestionRow } from "@/components/SettleSuggestionRow";
 import { InviteQrPanel } from "@/components/InviteQrPanel";
-import { formatSGD, formatDate } from "@/lib/format";
+import { GroupCurrencyPanel } from "@/components/GroupCurrencyPanel";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 // Reads live DB state (expenses/settlements change balances), so this
 // must never be served from Next's static prerender cache.
@@ -47,6 +48,14 @@ export default async function SplitGroupPage({ params }: { params: { groupId: st
           canRegenerate={group.createdById === user.id}
         />
 
+        <GroupCurrencyPanel
+          groupId={group.id}
+          currency={group.currency}
+          exchangeRateToSGD={group.exchangeRateToSGD}
+          rateUpdatedAt={group.rateUpdatedAt}
+          canEdit={group.createdById === user.id}
+        />
+
         <div className="rounded-2xl border border-orbit-border bg-orbit-card p-4">
           <p className="mb-2 text-xs font-medium text-orbit-muted">BALANCES</p>
           <div className="flex flex-col gap-2">
@@ -56,9 +65,9 @@ export default async function SplitGroupPage({ params }: { params: { groupId: st
                 {Math.abs(b.net) < 0.01 ? (
                   <StatusChip tone="muted">Settled up</StatusChip>
                 ) : b.net > 0 ? (
-                  <StatusChip tone="green">+{formatSGD(b.net)}</StatusChip>
+                  <StatusChip tone="green">+{formatCurrency(b.net, group.currency)}</StatusChip>
                 ) : (
-                  <StatusChip tone="red">-{formatSGD(-b.net)}</StatusChip>
+                  <StatusChip tone="red">-{formatCurrency(-b.net, group.currency)}</StatusChip>
                 )}
               </div>
             ))}
@@ -77,6 +86,8 @@ export default async function SplitGroupPage({ params }: { params: { groupId: st
                   currentMemberId={currentMember?.id}
                   fromIsOrbitUser={orbitUserByMemberId.get(s.fromMemberId) ?? false}
                   toIsOrbitUser={orbitUserByMemberId.get(s.toMemberId) ?? false}
+                  groupCurrency={group.currency}
+                  exchangeRateToSGD={group.exchangeRateToSGD}
                 />
               ))}
             </div>
@@ -98,7 +109,9 @@ export default async function SplitGroupPage({ params }: { params: { groupId: st
               <div key={e.id} className="border-b border-orbit-border py-3 last:border-none">
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-sm font-medium text-orbit-text">{e.description}</p>
-                  <p className="shrink-0 text-sm font-semibold text-orbit-text">{formatSGD(e.amount)}</p>
+                  <p className="shrink-0 text-sm font-semibold text-orbit-text">
+                    {formatCurrency(e.amount, group.currency)}
+                  </p>
                 </div>
                 <p className="mt-0.5 text-xs text-orbit-muted">
                   Paid by {e.paidByName} · {formatDate(e.occurredAt)}

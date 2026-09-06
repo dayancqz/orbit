@@ -167,15 +167,18 @@ model AgentAction {
 // placeholders) log shared expenses; balances and settle-up suggestions
 // are computed on read in src/lib/split.ts, never stored.
 model SplitGroup {
-  id          String            @id @default(cuid())
-  name        String
-  createdBy   User              @relation(fields: [createdById], references: [id])
-  createdById String
-  members     SplitMember[]
-  expenses    SplitExpense[]
-  settlements SplitSettlement[]
-  invite      SplitInvite?
-  createdAt   DateTime          @default(now())
+  id                String            @id @default(cuid())
+  name              String
+  createdBy         User              @relation(fields: [createdById], references: [id])
+  createdById       String
+  members           SplitMember[]
+  expenses          SplitExpense[]
+  settlements       SplitSettlement[]
+  invite            SplitInvite?
+  currency          String            @default("SGD")
+  exchangeRateToSGD Float             @default(1) // 1 unit of `currency` in SGD, from src/lib/fxRates.ts
+  rateUpdatedAt     DateTime?
+  createdAt         DateTime          @default(now())
 }
 
 // A QR/link join code for a group. One active invite per group —

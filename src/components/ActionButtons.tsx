@@ -28,7 +28,12 @@ export function ActionButtons({
   }
 
   const busy = pendingAction !== null;
-  const sizeClasses = compact ? "h-10 text-[13px]" : "h-[52px] text-[15px]";
+  // min-w keeps both buttons the same size regardless of label length —
+  // without it, "flex-1" only equalizes width when the row has extra
+  // space to divide (e.g. a full-width card); next to other inline
+  // content it falls back to each button's own text width, so a short
+  // label like "Keep" ends up nearly circular next to a longer one.
+  const sizeClasses = compact ? "h-10 min-w-[92px] px-4 text-[13px]" : "h-[52px] px-6 text-[15px]";
 
   return (
     <div className="flex gap-2">

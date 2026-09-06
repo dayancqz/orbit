@@ -7,7 +7,18 @@
 import { randomBytes } from "crypto";
 import { prisma } from "./db";
 import { sendPush } from "./push";
-import { computeNetBalances, round2, simplifyDebts, type SplitType } from "./splitMath";
+import { fetchExchangeRate } from "./fxRates";
+import {
+  computeNetBalances,
+  round2,
+  simplifyDebts,
+  SUPPORTED_TRIP_CURRENCIES,
+  type SplitType,
+  type TripCurrency,
+} from "./splitMath";
+
+export { SUPPORTED_TRIP_CURRENCIES };
+export type { TripCurrency } from "./splitMath";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -63,6 +74,7 @@ export interface SplitGroupSummary {
   name: string;
   memberCount: number;
   myNet: number;
+  currency: string;
   createdAt: string;
 }
 
@@ -70,6 +82,9 @@ export interface SplitGroupDetail {
   id: string;
   name: string;
   createdById: string;
+  currency: string;
+  exchangeRateToSGD: number;
+  rateUpdatedAt: string | null;
   members: SplitMemberView[];
   expenses: SplitExpenseView[];
   balances: SplitBalance[];
@@ -103,10 +118,12 @@ export interface NewGroupMemberInput {
 export async function createSplitGroup(
   sessionUserId: string,
   name: string,
-  members: NewGroupMemberInput[]
+  members: NewGroupMemberInput[],
+  currency: TripCurrency = "SGD"
 ): Promise<{ id: string }> {
   const trimmedName = name.trim();
   if (!trimmedName) throw new Error("Group needs a name");
+  if (!SUPPORTED_TRIP_CURRENCIES.includes(currency)) throw new Error("Unsupported currency");
 
   const creator = await prisma.user.findUniqueOrThrow({
     where: { id: sessionUserId },
@@ -125,10 +142,18 @@ export async function createSplitGroup(
     others.push({ userId: m.userId, name: m.name.trim() });
   }
 
+  // Fetched before creating anything — a failed rate lookup should fail
+  // group creation cleanly rather than leave a group sitting at the wrong
+  // (default 1:1) rate.
+  const exchangeRateToSGD = await fetchExchangeRate(currency, "SGD");
+
   const group = await prisma.splitGroup.create({
     data: {
       name: trimmedName,
       createdById: sessionUserId,
+      currency,
+      exchangeRateToSGD,
+      rateUpdatedAt: new Date(),
       members: {
         create: [
           { userId: sessionUserId, name: creator.name },
@@ -172,6 +197,7 @@ export async function getGroupsForUser(sessionUserId: string): Promise<SplitGrou
       name: g.name,
       memberCount: g.members.length,
       myNet: myMember ? net.get(myMember.id) ?? 0 : 0,
+      currency: g.currency,
       createdAt: g.createdAt.toISOString(),
     };
   });
@@ -216,6 +242,9 @@ export async function getGroupDetail(sessionUserId: string, groupId: string): Pr
     id: group.id,
     name: group.name,
     createdById: group.createdById,
+    currency: group.currency,
+    exchangeRateToSGD: group.exchangeRateToSGD,
+    rateUpdatedAt: group.rateUpdatedAt ? group.rateUpdatedAt.toISOString() : null,
     members: group.members.map((m) => ({
       id: m.id,
       userId: m.userId,
@@ -290,7 +319,9 @@ export async function addSplitExpense(
   const shareSum = round2(input.shares.reduce((sum, s) => sum + s.amount, 0));
   const total = round2(input.amount);
   if (Math.abs(shareSum - total) > SHARE_EPSILON) {
-    throw new Error(`Shares (S$${shareSum.toFixed(2)}) must add up to the total (S$${total.toFixed(2)})`);
+    throw new Error(
+      `Shares (${shareSum.toFixed(2)} ${group.currency}) must add up to the total (${total.toFixed(2)} ${group.currency})`
+    );
   }
 
   const expense = await prisma.splitExpense.create({
@@ -358,13 +389,22 @@ export async function settleDebt(
 }
 
 async function settleViaTransfer(
-  group: { id: string; name: string },
+  group: { id: string; name: string; currency: string; exchangeRateToSGD: number },
   fromMember: { id: string; userId: string | null },
   toMember: { id: string; userId: string | null },
-  amount: number
+  amountInGroupCurrency: number
 ): Promise<{ id: string; method: string }> {
   const fromUserId = fromMember.userId!;
   const toUserId = toMember.userId!;
+  // SplitSettlement.amount always stays in the group's own currency (so it
+  // keeps netting correctly against expenses in computeNetBalances) — the
+  // SGD conversion only matters for the real account balances/Transactions
+  // below, using whatever rate is currently cached on the group.
+  const sgdAmount = round2(amountInGroupCurrency * group.exchangeRateToSGD);
+  const label =
+    group.currency === "SGD"
+      ? `Split: ${group.name}`
+      : `Split: ${group.name} (${amountInGroupCurrency.toFixed(2)} ${group.currency} ≈ S$${sgdAmount.toFixed(2)})`;
 
   const result = await prisma.$transaction(async (tx) => {
     const fromAccount = await tx.account.findFirst({ where: { userId: fromUserId }, orderBy: { id: "asc" } });
@@ -374,16 +414,19 @@ async function settleViaTransfer(
     if (fromAccount.currency !== toAccount.currency) {
       throw new Error("Cross-currency settlement isn't supported yet");
     }
-    if (amount > fromAccount.balance) throw new Error("Amount exceeds your available balance");
+    if (fromAccount.currency !== "SGD") {
+      throw new Error("Real transfers currently only support SGD accounts");
+    }
+    if (sgdAmount > fromAccount.balance) throw new Error("Amount exceeds your available balance");
 
-    await tx.account.update({ where: { id: fromAccount.id }, data: { balance: fromAccount.balance - amount } });
-    await tx.account.update({ where: { id: toAccount.id }, data: { balance: toAccount.balance + amount } });
+    await tx.account.update({ where: { id: fromAccount.id }, data: { balance: fromAccount.balance - sgdAmount } });
+    await tx.account.update({ where: { id: toAccount.id }, data: { balance: toAccount.balance + sgdAmount } });
 
     await tx.transaction.create({
       data: {
         accountId: fromAccount.id,
-        merchant: `Split: ${group.name}`,
-        amount,
+        merchant: label,
+        amount: sgdAmount,
         category: "general",
         occurredAt: new Date(),
       },
@@ -391,8 +434,8 @@ async function settleViaTransfer(
     await tx.transaction.create({
       data: {
         accountId: toAccount.id,
-        merchant: `Split: ${group.name} (received)`,
-        amount,
+        merchant: `${label} (received)`,
+        amount: sgdAmount,
         category: "general",
         occurredAt: new Date(),
       },
@@ -403,7 +446,7 @@ async function settleViaTransfer(
         groupId: group.id,
         fromMemberId: fromMember.id,
         toMemberId: toMember.id,
-        amount,
+        amount: amountInGroupCurrency,
         method: "orbit_transfer",
       },
       select: { id: true },
@@ -412,11 +455,43 @@ async function settleViaTransfer(
 
   await notifySplitUser(toUserId, {
     title: "Orbit Split",
-    body: `You received S$${amount.toFixed(2)} for "${group.name}"`,
+    body: `You received S$${sgdAmount.toFixed(2)} for "${group.name}"`,
     url: `/split/${group.id}`,
   });
 
   return { id: result.id, method: "orbit_transfer" };
+}
+
+export interface GroupCurrencyView {
+  currency: string;
+  exchangeRateToSGD: number;
+  rateUpdatedAt: string;
+}
+
+// Creator-only — changing the currency (or re-submitting the same one to
+// refresh the rate) affects how every member's balance is displayed and
+// computed, so it's restricted the same way regenerateGroupInvite is.
+export async function setGroupCurrency(
+  sessionUserId: string,
+  groupId: string,
+  currency: TripCurrency
+): Promise<GroupCurrencyView> {
+  if (!SUPPORTED_TRIP_CURRENCIES.includes(currency)) throw new Error("Unsupported currency");
+
+  const group = await prisma.splitGroup.findUnique({ where: { id: groupId } });
+  if (!group) throw new Error("Split group not found");
+  if (group.createdById !== sessionUserId) {
+    throw new Error("Only the group creator can change the currency");
+  }
+
+  const exchangeRateToSGD = await fetchExchangeRate(currency, "SGD");
+  const rateUpdatedAt = new Date();
+  await prisma.splitGroup.update({
+    where: { id: groupId },
+    data: { currency, exchangeRateToSGD, rateUpdatedAt },
+  });
+
+  return { currency, exchangeRateToSGD, rateUpdatedAt: rateUpdatedAt.toISOString() };
 }
 
 export interface GroupInviteView {

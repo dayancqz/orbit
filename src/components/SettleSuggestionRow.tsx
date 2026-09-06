@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatSGD } from "@/lib/format";
+import { formatCurrency, formatSGD } from "@/lib/format";
 
 interface Suggestion {
   fromMemberId: string;
@@ -18,12 +18,16 @@ export function SettleSuggestionRow({
   currentMemberId,
   fromIsOrbitUser,
   toIsOrbitUser,
+  groupCurrency,
+  exchangeRateToSGD,
 }: {
   groupId: string;
   suggestion: Suggestion;
   currentMemberId?: string;
   fromIsOrbitUser: boolean;
   toIsOrbitUser: boolean;
+  groupCurrency: string;
+  exchangeRateToSGD: number;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +61,16 @@ export function SettleSuggestionRow({
 
   let actionLabel: string | null = null;
   if (isDebtor && toIsOrbitUser) {
-    actionLabel = `Settle ${formatSGD(suggestion.amount)}`;
+    // The debtor is about to trigger a real transfer — show both the
+    // group-currency amount they're used to and the SGD amount that will
+    // actually move, so they never have to convert it themselves. The
+    // server independently recomputes the authoritative SGD amount from
+    // its own cached rate at execution time; this is preview-only.
+    const preview =
+      groupCurrency === "SGD"
+        ? formatCurrency(suggestion.amount, groupCurrency)
+        : `${formatCurrency(suggestion.amount, groupCurrency)} (≈ ${formatSGD(suggestion.amount * exchangeRateToSGD)})`;
+    actionLabel = `Settle ${preview}`;
   } else if (isDebtor && !toIsOrbitUser) {
     actionLabel = "Mark as paid";
   } else if (isCreditor && !fromIsOrbitUser) {
@@ -73,13 +86,15 @@ export function SettleSuggestionRow({
           <span className="font-medium">{suggestion.fromName}</span> owes{" "}
           <span className="font-medium">{suggestion.toName}</span>
         </p>
-        <p className="shrink-0 text-sm font-semibold text-orbit-text">{formatSGD(suggestion.amount)}</p>
+        <p className="shrink-0 text-sm font-semibold text-orbit-text">
+          {formatCurrency(suggestion.amount, groupCurrency)}
+        </p>
       </div>
       {actionLabel ? (
         <button
           onClick={settle}
           disabled={submitting}
-          className="h-9 rounded-full bg-orbit-accent text-xs font-semibold text-orbit-accent-contrast disabled:opacity-60"
+          className="h-10 rounded-full bg-orbit-accent px-4 text-xs font-semibold text-orbit-accent-contrast disabled:opacity-60"
         >
           {submitting ? "Settling…" : actionLabel}
         </button>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SUPPORTED_TRIP_CURRENCIES } from "@/lib/splitMath";
 
 interface MemberRow {
   name: string;
@@ -17,6 +18,7 @@ function emptyRow(): MemberRow {
 export function NewSplitGroupForm() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [currency, setCurrency] = useState<(typeof SUPPORTED_TRIP_CURRENCIES)[number]>("SGD");
   const [members, setMembers] = useState<MemberRow[]>([emptyRow()]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -55,6 +57,7 @@ export function NewSplitGroupForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.trim(),
+        currency,
         members: validMembers.map((m) => ({ name: m.name.trim(), userId: m.userId })),
       }),
     });
@@ -80,6 +83,26 @@ export function NewSplitGroupForm() {
           placeholder="e.g. Seoul Trip"
           className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-orbit-text placeholder:text-orbit-muted"
         />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-orbit-muted">Currency</label>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value as (typeof SUPPORTED_TRIP_CURRENCIES)[number])}
+          className="w-full rounded-lg border border-orbit-border bg-orbit-surface px-3 py-2 text-sm text-orbit-text"
+        >
+          {SUPPORTED_TRIP_CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        {currency !== "SGD" && (
+          <p className="mt-1 text-[11px] text-orbit-muted">
+            Expenses will be tracked in {currency}. Orbit converts to SGD automatically when someone settles up.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -141,7 +164,7 @@ export function NewSplitGroupForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="h-12 rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
+        className="h-[52px] rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
       >
         {submitting ? "Creating…" : "Create group"}
       </button>

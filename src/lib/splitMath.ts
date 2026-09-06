@@ -5,6 +5,29 @@
 
 export type SplitType = "equal" | "exact" | "percentage";
 
+// Currencies a Split group can be set to (validated server-side against
+// this same list before calling out to the FX API in src/lib/fxRates.ts).
+export const SUPPORTED_TRIP_CURRENCIES = [
+  "SGD",
+  "USD",
+  "EUR",
+  "GBP",
+  "JPY",
+  "KRW",
+  "THB",
+  "MYR",
+  "IDR",
+  "AUD",
+  "HKD",
+  "CNY",
+  "VND",
+  "PHP",
+  "INR",
+  "TWD",
+] as const;
+
+export type TripCurrency = (typeof SUPPORTED_TRIP_CURRENCIES)[number];
+
 const EPSILON = 0.01;
 
 export function round2(n: number): number {

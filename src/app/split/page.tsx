@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { TabHeader } from "@/components/TabHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { StatusChip } from "@/components/StatusChip";
-import { formatSGD } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
 // Reads live DB state (balances change via expenses/settlements), so this
 // must never be served from Next's static prerender cache.
@@ -39,9 +39,9 @@ export default async function SplitPage() {
             {Math.abs(g.myNet) < 0.01 ? (
               <StatusChip tone="muted">Settled up</StatusChip>
             ) : g.myNet > 0 ? (
-              <StatusChip tone="green">You&apos;re owed {formatSGD(g.myNet)}</StatusChip>
+              <StatusChip tone="green">You&apos;re owed {formatCurrency(g.myNet, g.currency)}</StatusChip>
             ) : (
-              <StatusChip tone="red">You owe {formatSGD(-g.myNet)}</StatusChip>
+              <StatusChip tone="red">You owe {formatCurrency(-g.myNet, g.currency)}</StatusChip>
             )}
           </Link>
         ))}

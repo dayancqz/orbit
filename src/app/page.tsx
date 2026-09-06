@@ -34,7 +34,7 @@ export default function SplashPage() {
 
       <div className="relative flex flex-col items-center gap-3.5 px-8 pb-14 pt-10">
         {entering ? (
-          <div className="flex h-[54px] items-center gap-3 text-sm text-orbit-muted">
+          <div className="flex h-[52px] items-center gap-3 text-sm text-orbit-muted">
             <span className="h-6 w-6 animate-spin rounded-full border-[3px] border-orbit-accent/20 border-t-orbit-accent" />
             Loading your Orbit...
           </div>
@@ -42,7 +42,7 @@ export default function SplashPage() {
           <>
             <button
               onClick={enterOrbit}
-              className="h-[54px] w-full rounded-full bg-orbit-accent text-base font-semibold text-orbit-accent-contrast shadow-lg shadow-orbit-accent/20 transition hover:shadow-orbit-accent/40"
+              className="h-[52px] w-full rounded-full bg-orbit-accent text-base font-semibold text-orbit-accent-contrast shadow-lg shadow-orbit-accent/20 transition hover:shadow-orbit-accent/40"
             >
               Enter Orbit
             </button>

@@ -20,7 +20,11 @@ export default async function NewExpensePage({ params }: { params: { groupId: st
   return (
     <AppShell withBottomNav={false}>
       <PageHeader title="Add expense" backHref={`/split/${group.id}`} />
-      <AddExpenseForm groupId={group.id} members={group.members.map((m) => ({ id: m.id, name: m.name }))} />
+      <AddExpenseForm
+        groupId={group.id}
+        members={group.members.map((m) => ({ id: m.id, name: m.name }))}
+        groupCurrency={group.currency}
+      />
     </AppShell>
   );
 }

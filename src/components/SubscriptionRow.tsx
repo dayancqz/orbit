@@ -76,14 +76,14 @@ export function SubscriptionRow({
           <button
             type="submit"
             disabled={submitting}
-            className="h-9 flex-1 rounded-full bg-orbit-accent text-xs font-semibold text-orbit-accent-contrast disabled:opacity-60"
+            className="h-10 min-w-[92px] flex-1 rounded-full bg-orbit-accent px-4 text-xs font-semibold text-orbit-accent-contrast disabled:opacity-60"
           >
             {submitting ? "Saving…" : "Save"}
           </button>
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="h-9 flex-1 rounded-full border border-orbit-border text-xs font-medium text-orbit-muted"
+            className="h-10 min-w-[92px] flex-1 rounded-full border border-orbit-border px-4 text-xs font-medium text-orbit-muted"
           >
             Cancel
           </button>

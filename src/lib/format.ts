@@ -4,6 +4,33 @@ export function formatSGD(amount: number): string {
   return `S$${amount.toLocaleString("en-SG", { maximumFractionDigits: 2 })}`;
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  SGD: "S$",
+  USD: "US$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  KRW: "₩",
+  THB: "฿",
+  MYR: "RM",
+  IDR: "Rp",
+  AUD: "A$",
+  HKD: "HK$",
+  CNY: "CN¥",
+  VND: "₫",
+  PHP: "₱",
+  INR: "₹",
+  TWD: "NT$",
+};
+
+// Used for Split group amounts, which can be in any supported trip
+// currency — formatSGD stays untouched since every other agent/page's
+// amounts are always SGD.
+export function formatCurrency(amount: number, currency: string): string {
+  const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
+  return `${symbol}${amount.toLocaleString("en-SG", { maximumFractionDigits: 2 })}`;
+}
+
 export function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
 }

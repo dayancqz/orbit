@@ -63,7 +63,7 @@ export function InviteQrPanel({
           <button
             type="button"
             onClick={copyLink}
-            className="w-full rounded-full border border-orbit-border py-2.5 text-sm font-medium text-orbit-text"
+            className="flex h-[52px] w-full items-center justify-center rounded-full border border-orbit-border text-sm font-medium text-orbit-text"
           >
             {copied ? "Link copied ✓" : "Copy link"}
           </button>

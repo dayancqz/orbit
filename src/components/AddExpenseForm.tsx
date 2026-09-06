@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { computeEqualShares, computePercentageShares, round2, type SplitType } from "@/lib/splitMath";
-import { formatSGD } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 
 interface Member {
   id: string;
@@ -12,7 +12,15 @@ interface Member {
 
 const SPLIT_TYPES: SplitType[] = ["equal", "exact", "percentage"];
 
-export function AddExpenseForm({ groupId, members }: { groupId: string; members: Member[] }) {
+export function AddExpenseForm({
+  groupId,
+  members,
+  groupCurrency,
+}: {
+  groupId: string;
+  members: Member[];
+  groupCurrency: string;
+}) {
   const router = useRouter();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -54,7 +62,9 @@ export function AddExpenseForm({ groupId, members }: { groupId: string; members:
     if (!Number.isFinite(total) || total <= 0) return setError("Enter a valid amount");
     if (shares.length === 0) return setError("Select at least one member to split with");
     if (splitType !== "equal" && Math.abs(remainder) > 0.01) {
-      return setError(`Shares must add up to ${formatSGD(total)} (currently ${formatSGD(shareSum)})`);
+      return setError(
+        `Shares must add up to ${formatCurrency(total, groupCurrency)} (currently ${formatCurrency(shareSum, groupCurrency)})`
+      );
     }
 
     setSubmitting(true);
@@ -88,7 +98,7 @@ export function AddExpenseForm({ groupId, members }: { groupId: string; members:
       </div>
 
       <div>
-        <label className="mb-1 block text-xs text-orbit-muted">Amount (S$)</label>
+        <label className="mb-1 block text-xs text-orbit-muted">Amount ({groupCurrency})</label>
         <input
           type="number"
           min="0"
@@ -170,14 +180,14 @@ export function AddExpenseForm({ groupId, members }: { groupId: string; members:
                 />
               )}
               {splitType === "equal" && included[m.id] && share && (
-                <span className="shrink-0 text-xs text-orbit-muted">{formatSGD(share.amount)}</span>
+                <span className="shrink-0 text-xs text-orbit-muted">{formatCurrency(share.amount, groupCurrency)}</span>
               )}
             </div>
           );
         })}
         {total > 0 && (
           <p className={`text-[11px] ${Math.abs(remainder) > 0.01 ? "text-orbit-shield" : "text-orbit-muted"}`}>
-            {formatSGD(shareSum)} of {formatSGD(total)} allocated
+            {formatCurrency(shareSum, groupCurrency)} of {formatCurrency(total, groupCurrency)} allocated
           </p>
         )}
       </div>
@@ -187,7 +197,7 @@ export function AddExpenseForm({ groupId, members }: { groupId: string; members:
       <button
         type="submit"
         disabled={submitting}
-        className="h-12 rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
+        className="h-[52px] rounded-full bg-orbit-accent text-sm font-semibold text-orbit-accent-contrast disabled:opacity-60"
       >
         {submitting ? "Adding…" : "Add expense"}
       </button>
