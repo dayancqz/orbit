@@ -8,14 +8,16 @@ export function InviteQrPanel({
   joinUrl,
   qrDataUrl,
   canRegenerate,
+  openByDefault = false,
 }: {
   groupId: string;
   joinUrl: string;
   qrDataUrl: string;
   canRegenerate: boolean;
+  openByDefault?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(openByDefault);
   const [copied, setCopied] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);

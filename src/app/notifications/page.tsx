@@ -16,7 +16,7 @@ export default async function NotificationsPage() {
   // first — the full set is needed once to sync, but only the first page
   // is rendered; NotificationsList fetches further pages from
   // /api/actions (a plain read, no re-sync) as the user scrolls.
-  const actions = await syncAgentActions(user.id);
+  const actions = (await syncAgentActions(user.id)).filter((a) => !a.clearedAt);
   const initialActions = actions.slice(0, PAGE_SIZE);
   const initialCursor = actions.length > PAGE_SIZE ? initialActions[initialActions.length - 1].id : null;
 

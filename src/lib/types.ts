@@ -61,6 +61,10 @@ export interface AgentAction {
 // functions in src/lib/agents/* compute.
 export interface PersistedAgentAction extends AgentAction {
   status: ActionStatus;
+  // Set once the user has cleared it from the Notifications feed. Purely a
+  // feed-visibility flag — approve/dismiss history is untouched, and
+  // nothing outside the Notifications screen reads this field.
+  clearedAt?: string;
 }
 
 // Mirrors prisma/schema.prisma's GuardrailSettings — the thresholds each

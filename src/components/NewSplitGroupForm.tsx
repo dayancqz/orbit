@@ -49,7 +49,6 @@ export function NewSplitGroupForm() {
 
     if (!name.trim()) return setError("Enter a group name");
     const validMembers = members.filter((m) => m.name.trim());
-    if (validMembers.length === 0) return setError("Add at least one other member");
 
     setSubmitting(true);
     const res = await fetch("/api/split/groups", {
@@ -70,7 +69,7 @@ export function NewSplitGroupForm() {
     }
 
     const data = await res.json();
-    router.push(`/split/${data.group.id}`);
+    router.push(`/split/${data.group.id}?new=1`);
   }
 
   return (
@@ -107,8 +106,8 @@ export function NewSplitGroupForm() {
 
       <div className="flex flex-col gap-3">
         <p className="text-xs text-orbit-muted">
-          You&apos;re automatically included. Add everyone else below — enter their email if they&apos;re on
-          Orbit, or just a name if they&apos;re not.
+          You&apos;re automatically included. Add people now by email or name, or skip this and share a QR code
+          from the group once it&apos;s created — either works.
         </p>
         {members.map((m, i) => (
           <div key={i} className="rounded-2xl border border-orbit-border bg-orbit-card p-3">

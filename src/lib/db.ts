@@ -309,6 +309,7 @@ function toPersistedAction(row: {
   requiresApproval: boolean;
   createdAt: Date;
   status: string;
+  clearedAt?: Date | null;
 }): PersistedAgentAction {
   return {
     id: row.id,
@@ -320,6 +321,7 @@ function toPersistedAction(row: {
     requiresApproval: row.requiresApproval,
     timestamp: row.createdAt.toISOString(),
     status: row.status as "pending" | "approved" | "dismissed",
+    clearedAt: row.clearedAt ? row.clearedAt.toISOString() : undefined,
   };
 }
 
@@ -334,7 +336,7 @@ export async function getAgentActionsPage(
 ): Promise<{ actions: PersistedAgentAction[]; nextCursor: string | null }> {
   const limit = opts.limit ?? 20;
   const rows = await prisma.agentAction.findMany({
-    where: { userId },
+    where: { userId, clearedAt: null },
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     ...(opts.cursor ? { cursor: { id: opts.cursor }, skip: 1 } : {}),
@@ -595,6 +597,27 @@ export async function setActionStatus(
   }
 
   return toPersistedAction(row);
+}
+
+// Hides one action from the Notifications feed — the underlying row (and
+// its approve/dismiss status) is untouched, so the audit trail and the
+// Approvals workflow are completely unaffected.
+export async function clearNotification(userId: string, actionId: string): Promise<void> {
+  const existing = await prisma.agentAction.findUnique({ where: { id: actionId } });
+  if (!existing || existing.userId !== userId) {
+    throw new Error("No such action for this account");
+  }
+  await prisma.agentAction.update({ where: { id: actionId }, data: { clearedAt: new Date() } });
+}
+
+// Bulk version of clearNotification, for the "Clear all" control on the
+// Notifications screen.
+export async function clearAllNotifications(userId: string): Promise<{ count: number }> {
+  const result = await prisma.agentAction.updateMany({
+    where: { userId, clearedAt: null },
+    data: { clearedAt: new Date() },
+  });
+  return { count: result.count };
 }
 
 // Sends money out of an account — used by the Pay page. Debits the balance

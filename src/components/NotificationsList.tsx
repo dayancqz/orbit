@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { StatusChip } from "./StatusChip";
 import { ReasoningDisclosure } from "./ReasoningDisclosure";
 import { formatRelativeTime, isRecent } from "@/lib/format";
@@ -28,6 +29,33 @@ export function NotificationsList({
   const [cursor, setCursor] = useState(initialCursor);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clearingAll, setClearingAll] = useState(false);
+
+  // Fire-and-forget: the user is already navigating away to the agent
+  // page via the Link, so this doesn't need to block or update local
+  // state — the list unmounts right after.
+  function clearOne(actionId: string) {
+    fetch(`/api/actions/${actionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clear: true }),
+    }).catch(() => {});
+  }
+
+  async function clearAll() {
+    setClearingAll(true);
+    setError(null);
+    const res = await fetch("/api/actions/clear-all", { method: "POST" });
+    setClearingAll(false);
+
+    if (!res.ok) {
+      setError("Couldn't clear notifications — try again.");
+      return;
+    }
+
+    setActions([]);
+    setCursor(null);
+  }
 
   async function loadMore() {
     if (!cursor || loading) return;
@@ -53,6 +81,20 @@ export function NotificationsList({
 
   return (
     <>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs text-orbit-muted">
+          {actions.length} notification{actions.length === 1 ? "" : "s"}
+        </p>
+        <button
+          type="button"
+          onClick={clearAll}
+          disabled={clearingAll}
+          className="text-xs font-medium text-orbit-muted disabled:opacity-60"
+        >
+          {clearingAll ? "Clearing…" : "Clear all"}
+        </button>
+      </div>
+
       <ul className="flex flex-col gap-2">
         {actions.map((a, index) => {
           const recent = isRecent(a.timestamp);
@@ -64,24 +106,26 @@ export function NotificationsList({
               recent ? "border-orbit-accent/40" : "border-orbit-border"
             }`}
           >
-            <div className="mb-1.5 flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5 text-[11px] font-medium text-orbit-muted">
-                <span className={`h-2 w-2 rounded-full ${AGENT_DOT[a.agent]} ${recent ? "animate-pulse" : ""}`} />
-                {AGENT_LABEL[a.agent]}
-                {recent && (
-                  <span className="rounded-full bg-orbit-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orbit-accent">
-                    New
-                  </span>
-                )}
-              </span>
-              <span className="shrink-0 text-[11px] text-orbit-muted">{formatRelativeTime(a.timestamp)}</span>
-            </div>
-            <p className="mb-2 text-sm text-orbit-text">{a.description}</p>
-            {a.requiresApproval && (
-              <StatusChip tone={a.status === "approved" ? "green" : a.status === "dismissed" ? "muted" : "amber"}>
-                {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}
-              </StatusChip>
-            )}
+            <Link href={`/${a.agent}`} className="block" onClick={() => clearOne(a.id)}>
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-orbit-muted">
+                  <span className={`h-2 w-2 rounded-full ${AGENT_DOT[a.agent]} ${recent ? "animate-pulse" : ""}`} />
+                  {AGENT_LABEL[a.agent]}
+                  {recent && (
+                    <span className="rounded-full bg-orbit-accent/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orbit-accent">
+                      New
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-[11px] text-orbit-muted">{formatRelativeTime(a.timestamp)}</span>
+              </div>
+              <p className="mb-2 text-sm text-orbit-text">{a.description}</p>
+              {a.requiresApproval && (
+                <StatusChip tone={a.status === "approved" ? "green" : a.status === "dismissed" ? "muted" : "amber"}>
+                  {a.status === "pending" ? "Awaiting approval" : a.status === "approved" ? "Approved" : "Dismissed"}
+                </StatusChip>
+              )}
+            </Link>
             <ReasoningDisclosure reasoning={a.reasoning} agent={a.agent} />
           </li>
           );

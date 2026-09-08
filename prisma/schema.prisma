@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -159,6 +159,7 @@ model AgentAction {
   status      String   @default("pending") // "pending" | "approved" | "dismissed"
   approvedAt  DateTime?
   notifiedAt  DateTime? // set once a push notification has been sent for this action
+  clearedAt   DateTime? // hides it from the Notifications feed only — approve/dismiss history is untouched
   createdAt   DateTime @default(now())
 }
 

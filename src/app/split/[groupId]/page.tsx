@@ -16,7 +16,13 @@ import { formatCurrency, formatDate } from "@/lib/format";
 // must never be served from Next's static prerender cache.
 export const dynamic = "force-dynamic";
 
-export default async function SplitGroupPage({ params }: { params: { groupId: string } }) {
+export default async function SplitGroupPage({
+  params,
+  searchParams,
+}: {
+  params: { groupId: string };
+  searchParams: { new?: string };
+}) {
   const user = await requireUser();
 
   let group;
@@ -46,6 +52,7 @@ export default async function SplitGroupPage({ params }: { params: { groupId: st
           joinUrl={joinUrl}
           qrDataUrl={qrDataUrl}
           canRegenerate={group.createdById === user.id}
+          openByDefault={searchParams?.new === "1"}
         />
 
         <GroupCurrencyPanel

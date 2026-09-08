@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { setActionStatus } from "@/lib/db";
+import { clearNotification, setActionStatus } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
@@ -7,6 +7,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!user) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
 
   const body = await request.json();
+
+  if (body?.clear === true) {
+    try {
+      await clearNotification(user.id, params.id);
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Couldn't clear that notification";
+      return NextResponse.json({ error: message }, { status: 404 });
+    }
+  }
+
   const status = body?.status;
 
   if (status !== "approved" && status !== "dismissed") {
