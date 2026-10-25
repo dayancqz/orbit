@@ -4,12 +4,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { getSessionUser } from "@/lib/auth";
 import { buildThemeVars, parseAppearance } from "@/lib/theme";
+import { ReviewSessionProvider } from "@/components/ReviewSessionProvider";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Orbit — Your money, always working",
-  description: "A persistent, multi-agent AI system that runs your financial life.",
+  title: "Orbit — AI answer review",
+  description: "Review AI agent answers for reliability, relevance, groundedness, and intent alignment.",
 };
 
 // Every page (including logged-out ones) renders with a real theme from the
@@ -26,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" style={{ colorScheme: mode }}>
       <body className={inter.className} style={vars as React.CSSProperties}>
-        {children}
+        <ReviewSessionProvider>{children}</ReviewSessionProvider>
       </body>
     </html>
   );
