@@ -7,6 +7,12 @@ export type Rating = 1 | 2 | 3 | 4 | 5;
 export type Outcome = "supported" | "unsupported" | "insufficient_evidence";
 export type ClaimVerdict = "supported" | "unsupported" | "insufficient_evidence";
 export type RegressionCheck = { id: string; dimension: CriterionId; title: string; expectedBehavior: string };
+export type ReviewSubmission = {
+  caseId: string;
+  submittedAt: string;
+  ratings: Record<CriterionId, Rating>;
+  outcome: Outcome;
+};
 type SignalStatus = "risk" | "review" | "topic-match";
 type EvidenceSource = {
   id: string;
@@ -265,6 +271,7 @@ type ReviewSession = {
   regressionChecks: RegressionCheck[];
   assessment: Assessment | null;
   outcome: Outcome | null;
+  submittedReview: ReviewSubmission | null;
   showRewrite: boolean;
   ratingsComplete: boolean;
   setRequest: (value: string) => void;
@@ -272,6 +279,7 @@ type ReviewSession = {
   runChecks: () => void;
   updateRating: (id: CriterionId, rating: Rating) => void;
   addRegressionCheck: (check: RegressionCheck) => void;
+  submitReview: () => void;
   setShowRewrite: (value: boolean) => void;
   applySaferDraft: () => void;
   setOutcome: (value: Outcome | null) => void;
@@ -293,6 +301,7 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [regressionChecks, setRegressionChecks] = useState<RegressionCheck[]>([]);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [submittedReview, setSubmittedReview] = useState<ReviewSubmission | null>(null);
   const [showRewrite, setShowRewrite] = useState(false);
   const ratingsComplete = Object.values(ratings).every(Boolean);
 
@@ -303,6 +312,7 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
   function updateRequest(value: string) {
     setRequestValue(value);
     setOutcome(null);
+    setSubmittedReview(null);
     clearRatings();
   }
 
@@ -310,6 +320,7 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
     setAnswerValue(value);
     setAssessment(null);
     setOutcome(null);
+    setSubmittedReview(null);
     setShowRewrite(false);
     clearRatings();
   }
@@ -317,11 +328,28 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
   function runChecks() {
     setAssessment(assessDraft(answer, request));
     setOutcome(null);
+    setSubmittedReview(null);
   }
 
   function updateRating(id: CriterionId, rating: Rating) {
     setRatings((current) => ({ ...current, [id]: rating }));
     setOutcome(null);
+    setSubmittedReview(null);
+  }
+
+  function selectOutcome(value: Outcome | null) {
+    setOutcome(value);
+    setSubmittedReview(null);
+  }
+
+  function submitReview() {
+    if (!ratingsComplete || !outcome) return;
+    setSubmittedReview({
+      caseId: "CS-2048",
+      submittedAt: new Date().toISOString(),
+      ratings: ratings as Record<CriterionId, Rating>,
+      outcome,
+    });
   }
 
   function addRegressionCheck(check: RegressionCheck) {
@@ -343,6 +371,7 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
         regressionChecks,
         assessment,
         outcome,
+        submittedReview,
         showRewrite,
         ratingsComplete,
         setRequest: updateRequest,
@@ -350,9 +379,10 @@ export function ReviewSessionProvider({ children }: { children: ReactNode }) {
         runChecks,
         updateRating,
         addRegressionCheck,
+        submitReview,
         setShowRewrite,
         applySaferDraft,
-        setOutcome,
+        setOutcome: selectOutcome,
       }}
     >
       {children}

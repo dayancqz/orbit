@@ -386,12 +386,28 @@ function RubricPanel() {
 }
 
 function DecisionPanel() {
-  const { ratingsComplete, outcome, setOutcome } = useReviewSession();
+  const { ratings, ratingsComplete, outcome, setOutcome, submittedReview, submitReview } = useReviewSession();
   const verdicts: { id: Outcome; title: string; detail: string }[] = [
     { id: "supported", title: "Supported", detail: "The evidence supports the material claims." },
     { id: "unsupported", title: "Unsupported", detail: "Evidence contradicts or does not support a claim." },
     { id: "insufficient_evidence", title: "Insufficient evidence", detail: "The available sources cannot establish the answer." },
   ];
+
+  if (submittedReview) {
+    const submittedVerdict = verdicts.find((verdict) => verdict.id === submittedReview.outcome);
+    return (
+      <section className="review-receipt" role="status">
+        <div className="receipt-heading"><span>✓</span><div><h2>Review submitted</h2><p>Case {submittedReview.caseId} · {new Date(submittedReview.submittedAt).toLocaleString()}</p></div></div>
+        <div className="receipt-verdict"><span>Evidence verdict</span><strong>{submittedVerdict?.title}</strong></div>
+        <div className="receipt-scores">
+          {criteria.map((criterion) => (
+            <div key={criterion.id}><span>{criterion.label}</span><strong>{submittedReview.ratings[criterion.id]}/5</strong></div>
+          ))}
+        </div>
+        <p className="receipt-note">This is a demo receipt for the current session. It is cleared if the page is refreshed.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="decision-panel">
@@ -411,12 +427,12 @@ function DecisionPanel() {
           </button>
         ))}
       </div>
-      {outcome && (
-        <div className="decision-confirmation" role="status">
-          <span>✓</span>Verdict recorded for this review session:
-          <strong>{outcome === "insufficient_evidence" ? "Insufficient evidence" : outcome === "supported" ? "Supported" : "Unsupported"}</strong>
-        </div>
-      )}
+      <div className="submit-review-area">
+        <button type="button" className="submit-review-button" disabled={!ratingsComplete || !outcome} onClick={submitReview}>
+          Submit review
+        </button>
+        <p>{!ratingsComplete ? "Complete all four scores to continue." : !outcome ? "Choose an evidence verdict to continue." : "Submit the scores and verdict as one review."}</p>
+      </div>
     </section>
   );
 }
